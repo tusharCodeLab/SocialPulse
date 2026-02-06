@@ -14,7 +14,279 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ai_insights: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          insight_type: string
+          is_read: boolean | null
+          platform: Database["public"]["Enums"]["social_platform"] | null
+          priority: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          insight_type: string
+          is_read?: boolean | null
+          platform?: Database["public"]["Enums"]["social_platform"] | null
+          priority?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          insight_type?: string
+          is_read?: boolean | null
+          platform?: Database["public"]["Enums"]["social_platform"] | null
+          priority?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      audience_metrics: {
+        Row: {
+          created_at: string | null
+          date: string
+          engagement_rate: number | null
+          followers_count: number | null
+          following_count: number | null
+          id: string
+          lost_followers: number | null
+          new_followers: number | null
+          platform: Database["public"]["Enums"]["social_platform"]
+          social_account_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          engagement_rate?: number | null
+          followers_count?: number | null
+          following_count?: number | null
+          id?: string
+          lost_followers?: number | null
+          new_followers?: number | null
+          platform: Database["public"]["Enums"]["social_platform"]
+          social_account_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          engagement_rate?: number | null
+          followers_count?: number | null
+          following_count?: number | null
+          id?: string
+          lost_followers?: number | null
+          new_followers?: number | null
+          platform?: Database["public"]["Enums"]["social_platform"]
+          social_account_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audience_metrics_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      best_posting_times: {
+        Row: {
+          day_of_week: number
+          engagement_score: number | null
+          hour_of_day: number
+          id: string
+          last_calculated_at: string | null
+          platform: Database["public"]["Enums"]["social_platform"]
+          sample_size: number | null
+          user_id: string
+        }
+        Insert: {
+          day_of_week: number
+          engagement_score?: number | null
+          hour_of_day: number
+          id?: string
+          last_calculated_at?: string | null
+          platform: Database["public"]["Enums"]["social_platform"]
+          sample_size?: number | null
+          user_id: string
+        }
+        Update: {
+          day_of_week?: number
+          engagement_score?: number | null
+          hour_of_day?: number
+          id?: string
+          last_calculated_at?: string | null
+          platform?: Database["public"]["Enums"]["social_platform"]
+          sample_size?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      post_comments: {
+        Row: {
+          analyzed_at: string | null
+          author_name: string | null
+          content: string
+          created_at: string | null
+          id: string
+          post_id: string | null
+          sentiment: Database["public"]["Enums"]["sentiment_type"] | null
+          sentiment_score: number | null
+          user_id: string
+        }
+        Insert: {
+          analyzed_at?: string | null
+          author_name?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          sentiment?: Database["public"]["Enums"]["sentiment_type"] | null
+          sentiment_score?: number | null
+          user_id: string
+        }
+        Update: {
+          analyzed_at?: string | null
+          author_name?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          sentiment?: Database["public"]["Enums"]["sentiment_type"] | null
+          sentiment_score?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          comments_count: number | null
+          content: string | null
+          created_at: string | null
+          engagement_rate: number | null
+          external_post_id: string | null
+          id: string
+          impressions: number | null
+          likes_count: number | null
+          media_url: string | null
+          platform: Database["public"]["Enums"]["social_platform"]
+          post_type: string | null
+          published_at: string | null
+          reach: number | null
+          shares_count: number | null
+          social_account_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string | null
+          engagement_rate?: number | null
+          external_post_id?: string | null
+          id?: string
+          impressions?: number | null
+          likes_count?: number | null
+          media_url?: string | null
+          platform: Database["public"]["Enums"]["social_platform"]
+          post_type?: string | null
+          published_at?: string | null
+          reach?: number | null
+          shares_count?: number | null
+          social_account_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string | null
+          engagement_rate?: number | null
+          external_post_id?: string | null
+          id?: string
+          impressions?: number | null
+          likes_count?: number | null
+          media_url?: string | null
+          platform?: Database["public"]["Enums"]["social_platform"]
+          post_type?: string | null
+          published_at?: string | null
+          reach?: number | null
+          shares_count?: number | null
+          social_account_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_accounts: {
+        Row: {
+          account_handle: string | null
+          account_name: string
+          created_at: string | null
+          followers_count: number | null
+          following_count: number | null
+          id: string
+          is_connected: boolean | null
+          platform: Database["public"]["Enums"]["social_platform"]
+          profile_image_url: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_handle?: string | null
+          account_name: string
+          created_at?: string | null
+          followers_count?: number | null
+          following_count?: number | null
+          id?: string
+          is_connected?: boolean | null
+          platform: Database["public"]["Enums"]["social_platform"]
+          profile_image_url?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_handle?: string | null
+          account_name?: string
+          created_at?: string | null
+          followers_count?: number | null
+          following_count?: number | null
+          id?: string
+          is_connected?: boolean | null
+          platform?: Database["public"]["Enums"]["social_platform"]
+          profile_image_url?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +295,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      sentiment_type: "positive" | "negative" | "neutral"
+      social_platform: "instagram" | "twitter" | "facebook" | "linkedin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +423,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      sentiment_type: ["positive", "negative", "neutral"],
+      social_platform: ["instagram", "twitter", "facebook", "linkedin"],
+    },
   },
 } as const
