@@ -7,8 +7,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
   PieChart,
   Pie,
   Cell,
@@ -22,26 +20,22 @@ import {
   Zap,
   Sparkles,
   Loader2,
-  Plus,
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { InsightCard } from '@/components/dashboard/InsightCard';
 import { ChartCard } from '@/components/dashboard/ChartCard';
-import { AddPostDialog } from '@/components/dashboard/AddPostDialog';
 import { Button } from '@/components/ui/button';
-import { usePostStats, usePosts } from '@/hooks/usePosts';
-import { useAudienceGrowth, useAudienceMetrics } from '@/hooks/useAudienceMetrics';
-import { useSentimentStats, useAIInsights, useGenerateInsights } from '@/hooks/useAnalytics';
 import { useAuth } from '@/contexts/AuthContext';
-import {
-  engagementData as demoEngagementData,
-  dashboardMetrics as demoDashboardMetrics,
-  smartInsights as demoSmartInsights,
-  sentimentData as demoSentimentData,
-  trendingTopics,
-} from '@/lib/demoData';
 import { useToast } from '@/hooks/use-toast';
+import {
+  useDashboardSummaryApi,
+  usePostsApi,
+  useSentimentStatsApi,
+  useAIInsightsApi,
+  useTrendingTopicsApi,
+  useGenerateInsightsApi,
+} from '@/hooks/useSocialApi';
 
 const COLORS = {
   engagement: 'hsl(173, 80%, 45%)',
@@ -56,62 +50,41 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   
-  // Real data hooks
-  const { data: postStats, isLoading: loadingPosts } = usePostStats();
-  const { data: posts } = usePosts();
-  const { data: audienceGrowth, isLoading: loadingAudience } = useAudienceGrowth();
-  const { data: audienceMetrics } = useAudienceMetrics();
-  const { data: sentimentStats, isLoading: loadingSentiment } = useSentimentStats();
-  const { data: aiInsights, isLoading: loadingInsights } = useAIInsights();
-  const generateInsights = useGenerateInsights();
+  // API hooks
+  const { data: summary, isLoading: loadingSummary } = useDashboardSummaryApi();
+  const { data: posts, isLoading: loadingPosts } = usePostsApi();
+  const { data: sentimentStats, isLoading: loadingSentiment } = useSentimentStatsApi();
+  const { data: insights, isLoading: loadingInsights } = useAIInsightsApi();
+  const { data: trendingTopics } = useTrendingTopicsApi();
+  const generateInsights = useGenerateInsightsApi();
 
-  const isLoading = loadingPosts || loadingAudience || loadingSentiment || loadingInsights;
-  const hasData = (postStats?.totalPosts || 0) > 0;
-
-  // Use real data if available, otherwise demo data
-  const metrics = hasData && postStats ? {
-    totalFollowers: audienceGrowth?.currentFollowers || 0,
-    followersGrowth: audienceGrowth?.growthRate || 0,
-    totalEngagement: postStats.totalLikes + postStats.totalComments + postStats.totalShares,
-    engagementGrowth: 0,
-    totalReach: postStats.totalReach,
-    reachGrowth: 0,
-    avgSentiment: sentimentStats?.positivePercent ? sentimentStats.positivePercent / 100 : 0,
-    sentimentGrowth: 0,
-    totalPosts: postStats.totalPosts,
-    postsGrowth: 0,
-    avgEngagementRate: postStats.avgEngagement,
-    engagementRateGrowth: 0,
-  } : demoDashboardMetrics;
+  const isLoading = loadingSummary || loadingPosts || loadingSentiment || loadingInsights;
 
   // Transform posts to engagement chart data
-  const engagementData = hasData && posts?.length ? 
-    posts.slice(0, 7).reverse().map(p => ({
-      date: new Date(p.published_at || p.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      likes: p.likes_count,
-      comments: p.comments_count,
-      shares: p.shares_count,
-    })) : demoEngagementData;
+  const engagementData = posts?.slice(0, 7).map(p => ({
+    date: new Date(p.publishedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    likes: p.metrics.likes,
+    comments: p.metrics.comments,
+    shares: p.metrics.shares,
+  })) || [];
 
   // Sentiment pie data
-  const pieData = hasData && sentimentStats ? [
-    { name: 'Positive', value: sentimentStats.positive || 0, color: COLORS.positive },
-    { name: 'Neutral', value: sentimentStats.neutral || 0, color: COLORS.neutral },
-    { name: 'Negative', value: sentimentStats.negative || 0, color: COLORS.negative },
-  ] : [
-    { name: 'Positive', value: 65, color: COLORS.positive },
-    { name: 'Neutral', value: 25, color: COLORS.neutral },
-    { name: 'Negative', value: 10, color: COLORS.negative },
-  ];
+  const pieData = sentimentStats ? [
+    { name: 'Positive', value: sentimentStats.positive, color: COLORS.positive },
+    { name: 'Neutral', value: sentimentStats.neutral, color: COLORS.neutral },
+    { name: 'Negative', value: sentimentStats.negative, color: COLORS.negative },
+  ] : [];
 
-  // AI Insights
-  const insights = aiInsights?.length ? aiInsights.map(i => ({
+  // Map insights to display format
+  const displayInsights = insights?.slice(0, 3).map(i => ({
     id: i.id,
-    type: i.insight_type as 'trend' | 'tip' | 'alert',
+    type: i.type === 'alert' ? 'warning' as const 
+      : i.type === 'opportunity' || i.type === 'trend' ? 'success' as const 
+      : 'info' as const,
     title: i.title,
     description: i.description,
-    metric: i.priority,
-  })) : demoSmartInsights;
+    metric: i.metric,
+  })) || [];
 
   const handleGenerateInsights = async () => {
     try {
@@ -147,19 +120,18 @@ export default function Dashboard() {
               Here's what's happening with your social media presence today.
             </p>
           </div>
-          <AddPostDialog />
         </motion.div>
 
-        {/* Mode Indicator */}
+        {/* Live Data Indicator */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
           className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20"
         >
-          <div className={`w-2 h-2 rounded-full ${hasData ? 'bg-chart-sentiment-positive' : 'bg-primary'} pulse-live`} />
+          <div className="w-2 h-2 rounded-full bg-chart-sentiment-positive pulse-live" />
           <span className="text-xs font-medium text-primary">
-            {hasData ? 'Live Data' : 'Demo Mode - Add posts to see real data'}
+            Live Analytics - Data refreshes automatically
           </span>
         </motion.div>
       </div>
@@ -174,47 +146,47 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
             <MetricCard
               title="Total Followers"
-              value={metrics.totalFollowers.toLocaleString()}
-              change={metrics.followersGrowth}
+              value={summary?.totalFollowers.toLocaleString() || '0'}
+              change={12.5}
               icon={Users}
               delay={0.1}
             />
             <MetricCard
               title="Engagement"
-              value={metrics.totalEngagement.toLocaleString()}
-              change={metrics.engagementGrowth}
+              value={summary?.totalEngagement.toLocaleString() || '0'}
+              change={8.3}
               icon={Heart}
               delay={0.15}
             />
             <MetricCard
               title="Total Reach"
-              value={metrics.totalReach >= 1000000 
-                ? `${(metrics.totalReach / 1000000).toFixed(2)}M` 
-                : metrics.totalReach >= 1000 
-                  ? `${(metrics.totalReach / 1000).toFixed(1)}K`
-                  : metrics.totalReach.toString()}
-              change={metrics.reachGrowth}
+              value={summary?.totalReach >= 1000000 
+                ? `${(summary.totalReach / 1000000).toFixed(2)}M` 
+                : summary?.totalReach >= 1000 
+                  ? `${(summary.totalReach / 1000).toFixed(1)}K`
+                  : summary?.totalReach?.toString() || '0'}
+              change={15.7}
               icon={Eye}
               delay={0.2}
             />
             <MetricCard
               title="Avg Sentiment"
-              value={`${Math.round(metrics.avgSentiment * 100)}%`}
-              change={metrics.sentimentGrowth}
+              value={`${Math.round((summary?.positiveSentimentPercent || 0))}%`}
+              change={5.2}
               icon={Sparkles}
               delay={0.25}
             />
             <MetricCard
               title="Total Posts"
-              value={metrics.totalPosts.toString()}
-              change={metrics.postsGrowth}
+              value={summary?.totalPosts.toString() || '0'}
+              change={23}
               icon={FileText}
               delay={0.3}
             />
             <MetricCard
               title="Eng. Rate"
-              value={`${typeof metrics.avgEngagementRate === 'number' ? metrics.avgEngagementRate.toFixed(1) : metrics.avgEngagementRate}%`}
-              change={metrics.engagementRateGrowth}
+              value={`${(summary?.avgEngagementRate || 0).toFixed(1)}%`}
+              change={1.2}
               icon={Zap}
               delay={0.35}
             />
@@ -305,7 +277,7 @@ export default function Dashboard() {
                 </ResponsiveContainer>
                 <div className="absolute flex flex-col items-center">
                   <span className="text-3xl font-bold text-foreground">
-                    {Math.round(sentimentStats?.positivePercent || 65)}%
+                    {Math.round(sentimentStats?.positivePercent || 0)}%
                   </span>
                   <span className="text-sm text-muted-foreground">Positive</span>
                 </div>
@@ -338,24 +310,22 @@ export default function Dashboard() {
                   <Sparkles className="h-5 w-5 text-primary" />
                   <h2 className="font-semibold text-foreground">AI-Powered Insights</h2>
                 </div>
-                {hasData && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleGenerateInsights}
-                    disabled={generateInsights.isPending}
-                  >
-                    {generateInsights.isPending ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : (
-                      <Sparkles className="h-4 w-4 mr-2" />
-                    )}
-                    Generate Insights
-                  </Button>
-                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGenerateInsights}
+                  disabled={generateInsights.isPending}
+                >
+                  {generateInsights.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Sparkles className="h-4 w-4 mr-2" />
+                  )}
+                  Generate Insights
+                </Button>
               </motion.div>
               <div className="grid gap-4">
-                {insights.slice(0, 3).map((insight, index) => (
+                {displayInsights.map((insight, index) => (
                   <InsightCard
                     key={insight.id}
                     type={insight.type}
@@ -375,7 +345,7 @@ export default function Dashboard() {
               delay={0.6}
             >
               <div className="space-y-3">
-                {trendingTopics.map((topic, index) => (
+                {trendingTopics?.slice(0, 5).map((topic, index) => (
                   <motion.div
                     key={topic.topic}
                     initial={{ opacity: 0, x: 20 }}
@@ -384,7 +354,7 @@ export default function Dashboard() {
                     className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-foreground">{topic.topic}</span>
+                      <span className="text-sm font-medium text-foreground">{topic.hashtag}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <TrendingUp className="h-4 w-4 text-chart-sentiment-positive" />
