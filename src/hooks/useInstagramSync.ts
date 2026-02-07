@@ -8,8 +8,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { queryKeys } from './useSocialApi';
 import { toast } from 'sonner';
 
-const SYNC_INTERVAL_MS = 60000; // Poll every 60 seconds for new Instagram data
-const MIN_SYNC_INTERVAL_MS = 30000; // Minimum 30 seconds between syncs
+const SYNC_INTERVAL_MS = 15000; // Poll every 15 seconds for new Instagram data
+const MIN_SYNC_INTERVAL_MS = 10000; // Minimum 10 seconds between syncs
 
 export function useInstagramSync() {
   const queryClient = useQueryClient();
