@@ -10,6 +10,19 @@ const corsHeaders = {
 // This works with tokens that have pages_show_list, instagram_basic permissions
 const FACEBOOK_GRAPH_API = "https://graph.facebook.com/v18.0";
 
+// Helper to add delay between API calls to avoid rate limiting
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Check if response is a rate limit error
+function isRateLimitError(responseText: string): boolean {
+  try {
+    const parsed = JSON.parse(responseText);
+    return parsed?.error?.code === 4 || parsed?.error?.message?.includes("request limit");
+  } catch {
+    return false;
+  }
+}
+
 interface InstagramMedia {
   id: string;
   caption?: string;
@@ -76,13 +89,17 @@ serve(async (req) => {
     
     if (!pagesResponse.ok) {
       console.error("Facebook Pages API error:", pagesRawResponse);
+      const statusCode = isRateLimitError(pagesRawResponse) ? 429 : 400;
       return new Response(
         JSON.stringify({ 
           error: "Failed to fetch Facebook Pages", 
           details: pagesRawResponse,
-          hint: "Make sure your token has 'pages_show_list' permission and is a valid User Access Token from Graph API Explorer"
+          hint: statusCode === 429 
+            ? "Facebook API rate limit reached. Please wait a few minutes before syncing again."
+            : "Make sure your token has 'pages_show_list' permission and is a valid User Access Token from Graph API Explorer",
+          rateLimited: statusCode === 429,
         }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: statusCode, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
     
@@ -117,6 +134,7 @@ serve(async (req) => {
     let pageAccessToken: string | null = null;
 
     for (const page of pagesData.data) {
+      await delay(500); // Delay between page checks to avoid rate limits
       console.log(`Checking page: ${page.name} (${page.id})`);
       
       const igAccountResponse = await fetch(
@@ -219,7 +237,8 @@ serve(async (req) => {
 
     // Step 6: Fetch comments for each post
     let totalComments = 0;
-    for (const media of mediaData.slice(0, 10)) {
+    for (const media of mediaData.slice(0, 5)) { // Reduced from 10 to 5 to avoid rate limits
+      await delay(1000); // 1 second delay between comment fetches
       try {
         const commentsResponse = await fetch(
           `${FACEBOOK_GRAPH_API}/${media.id}/comments?fields=id,text,timestamp,username&limit=50&access_token=${pageAccessToken}`
