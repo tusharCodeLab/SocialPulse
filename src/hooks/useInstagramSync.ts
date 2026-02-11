@@ -8,8 +8,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { queryKeys } from './useSocialApi';
 import { toast } from 'sonner';
 
-const SYNC_INTERVAL_MS = 15000; // Poll every 15 seconds for new Instagram data
-const MIN_SYNC_INTERVAL_MS = 10000; // Minimum 10 seconds between syncs
+const SYNC_INTERVAL_MS = 5 * 60 * 1000; // Poll every 5 minutes to avoid Facebook API rate limits
+const MIN_SYNC_INTERVAL_MS = 60 * 1000; // Minimum 1 minute between syncs
 
 export function useInstagramSync() {
   const queryClient = useQueryClient();
@@ -38,6 +38,11 @@ export function useInstagramSync() {
 
       if (error) {
         console.error('[InstagramSync] Sync error:', error);
+        // Check if rate limited - back off significantly
+        if (error.message?.includes('429') || error.message?.includes('rate limit')) {
+          toast.error('Instagram API rate limit reached. Will retry in a few minutes.');
+          lastSyncRef.current = Date.now() + 3 * 60 * 1000; // Back off 3 extra minutes
+        }
         return;
       }
 
