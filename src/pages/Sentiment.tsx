@@ -18,12 +18,15 @@ import {
   MessageCircle,
   Sparkles,
   Loader2,
+  Shield,
+  AlertTriangle,
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { ChartCard } from '@/components/dashboard/ChartCard';
 import { SentimentBadge } from '@/components/dashboard/SentimentBadge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import {
   useSentimentStatsApi,
@@ -31,6 +34,7 @@ import {
   useCommentsApi,
   useAnalyzeSentimentApi,
 } from '@/hooks/useSocialApi';
+import { useSpamComments, useDetectSpam } from '@/hooks/useAIFeatures';
 
 const COLORS = {
   positive: 'hsl(142, 71%, 45%)',
@@ -45,6 +49,10 @@ export default function Sentiment() {
   const { data: trend, isLoading: loadingTrend } = useSentimentTrendApi(14);
   const { data: comments, isLoading: loadingComments, refetch: refetchComments } = useCommentsApi();
   const analyzeSentiment = useAnalyzeSentimentApi();
+
+  // Spam detection
+  const { data: spamComments, isLoading: loadingSpam } = useSpamComments();
+  const detectSpam = useDetectSpam();
 
   const isLoading = loadingStats || loadingTrend || loadingComments;
 
@@ -72,11 +80,16 @@ export default function Sentiment() {
           : "All comments have already been analyzed.",
       });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to analyze sentiment.",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error instanceof Error ? error.message : "Failed to analyze sentiment.", variant: "destructive" });
+    }
+  };
+
+  const handleScanSpam = async () => {
+    try {
+      await detectSpam.mutateAsync();
+      toast({ title: 'Success', description: `Scan complete! ${detectSpam.data?.spamFound || 0} spam found.` });
+    } catch (error) {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to scan', variant: 'destructive' });
     }
   };
 
@@ -181,45 +194,98 @@ export default function Sentiment() {
             </ChartCard>
           </div>
 
-          <ChartCard title="Recent Comments" subtitle="Latest analyzed feedback" delay={0.4}>
-            {comments && comments.length > 0 ? (
-              <div className="space-y-4">
-                {comments.slice(0, 8).map((comment, index) => (
+          <ChartCard title="AI Spam Comment Filter" subtitle="Detect bot, promotional, and phishing comments" delay={0.38}>
+            <div className="flex justify-end mb-4">
+              <Button
+                size="sm"
+                onClick={handleScanSpam}
+                disabled={detectSpam.isPending}
+              >
+                {detectSpam.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Shield className="h-4 w-4 mr-2" />
+                )}
+                Scan for Spam
+              </Button>
+            </div>
+
+            {loadingSpam ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : spamComments && spamComments.length > 0 ? (
+              <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                {spamComments.map((comment, i) => (
                   <motion.div
                     key={comment.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.45 + index * 0.05 }}
-                    className="p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4 + i * 0.03 }}
+                    className="p-3 rounded-lg bg-destructive/5 border border-destructive/20"
                   >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="font-medium text-foreground">{comment.authorName}</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-2">{comment.content}</p>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(comment.createdAt).toLocaleDateString()}
-                        </span>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground">{comment.author_name || 'Anonymous'}</p>
+                        <p className="text-xs text-muted-foreground truncate">{comment.content}</p>
                       </div>
-                      <div className="flex flex-col items-end gap-2">
-                        {comment.sentiment && <SentimentBadge sentiment={comment.sentiment} />}
-                        {comment.sentimentScore != null && (
-                          <span className="text-xs text-muted-foreground">
-                            Score: {(comment.sentimentScore * 100).toFixed(0)}%
-                          </span>
-                        )}
-                      </div>
+                      <Badge variant="destructive" className="text-[10px] shrink-0">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        {comment.spam_reason}
+                      </Badge>
                     </div>
                   </motion.div>
                 ))}
               </div>
             ) : (
-              <div className="py-8 text-center text-muted-foreground">
-                No comments data. Import comments by syncing Instagram in Settings.
+              <div className="text-center py-8">
+                <MessageCircle className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                <p className="text-muted-foreground">No spam detected. Click "Scan for Spam" to analyze comments.</p>
               </div>
             )}
           </ChartCard>
+
+          <div className="mt-6">
+            <ChartCard title="Recent Comments" subtitle="Latest analyzed feedback" delay={0.4}>
+              {comments && comments.length > 0 ? (
+                <div className="space-y-4">
+                  {comments.slice(0, 8).map((comment, index) => (
+                    <motion.div
+                      key={comment.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.45 + index * 0.05 }}
+                      className="p-4 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="font-medium text-foreground">{comment.authorName}</span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">{comment.content}</p>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(comment.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
+                          {comment.sentiment && <SentimentBadge sentiment={comment.sentiment} />}
+                          {comment.sentimentScore != null && (
+                            <span className="text-xs text-muted-foreground">
+                              Score: {(comment.sentimentScore * 100).toFixed(0)}%
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-muted-foreground">
+                  No comments data. Import comments by syncing Instagram in Settings.
+                </div>
+              )}
+            </ChartCard>
+          </div>
         </>
       )}
     </DashboardLayout>
