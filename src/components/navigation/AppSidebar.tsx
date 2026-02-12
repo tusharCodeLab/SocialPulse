@@ -16,7 +16,6 @@ import {
   Zap,
 } from 'lucide-react';
 import { SidebarNavLink } from './SidebarNavLink';
-import { ProfileSwitcher } from './ProfileSwitcher';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -82,9 +81,6 @@ export function AppSidebar() {
           </AnimatePresence>
         </div>
       </div>
-
-      {/* Profile Switcher */}
-      <ProfileSwitcher collapsed={collapsed} />
 
       {/* AI Badge */}
       <AnimatePresence mode="wait">

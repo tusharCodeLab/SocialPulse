@@ -4,7 +4,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { socialApi } from '@/services/api';
 import type { SocialPlatform } from '@/services/api/types';
-import { useActiveProfileStore } from '@/stores/activeProfileStore';
 
 // ============================================================================
 // Query Keys - Centralized for easy invalidation
@@ -12,18 +11,18 @@ import { useActiveProfileStore } from '@/stores/activeProfileStore';
 export const queryKeys = {
   accounts: ['social-accounts'] as const,
   account: (id: string) => ['social-account', id] as const,
-  posts: (platform?: SocialPlatform, profileId?: string | null) => ['posts', platform, profileId] as const,
+  posts: (platform?: SocialPlatform) => ['posts', platform] as const,
   post: (id: string) => ['post', id] as const,
-  postStats: (profileId?: string | null) => ['post-stats', profileId] as const,
-  comments: (postId?: string, profileId?: string | null) => ['comments', postId, profileId] as const,
-  sentimentStats: (profileId?: string | null) => ['sentiment-stats', profileId] as const,
+  postStats: ['post-stats'] as const,
+  comments: (postId?: string) => ['comments', postId] as const,
+  sentimentStats: ['sentiment-stats'] as const,
   demographics: (accountId?: string) => ['demographics', accountId] as const,
-  audienceGrowth: (days?: number, profileId?: string | null) => ['audience-growth', days, profileId] as const,
+  audienceGrowth: (days?: number) => ['audience-growth', days] as const,
   audienceSummary: ['audience-summary'] as const,
-  engagement: (days?: number, profileId?: string | null) => ['engagement', days, profileId] as const,
+  engagement: (days?: number) => ['engagement', days] as const,
   sentimentTrend: (days?: number) => ['sentiment-trend', days] as const,
   bestPostingTimes: (platform?: SocialPlatform) => ['best-posting-times', platform] as const,
-  dashboardSummary: (profileId?: string | null) => ['dashboard-summary', profileId] as const,
+  dashboardSummary: ['dashboard-summary'] as const,
   insights: ['ai-insights'] as const,
   trendingTopics: ['trending-topics'] as const,
 };
@@ -38,7 +37,7 @@ export function useSocialAccountsApi() {
       const response = await socialApi.accounts.getAll();
       return response.data;
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 }
 
@@ -83,14 +82,13 @@ export function useDisconnectAccount() {
 // Posts Hooks
 // ============================================================================
 export function usePostsApi(platform?: SocialPlatform) {
-  const { activeProfileId } = useActiveProfileStore();
   return useQuery({
-    queryKey: queryKeys.posts(platform, activeProfileId),
+    queryKey: queryKeys.posts(platform),
     queryFn: async () => {
-      const response = await socialApi.posts.getAll({ platform, socialAccountId: activeProfileId });
+      const response = await socialApi.posts.getAll({ platform });
       return response.data;
     },
-    staleTime: 2 * 60 * 1000,
+    staleTime: 2 * 60 * 1000, // 2 minutes
   });
 }
 
@@ -106,11 +104,10 @@ export function usePostApi(postId: string) {
 }
 
 export function usePostStatsApi() {
-  const { activeProfileId } = useActiveProfileStore();
   return useQuery({
-    queryKey: queryKeys.postStats(activeProfileId),
+    queryKey: queryKeys.postStats,
     queryFn: async () => {
-      const response = await socialApi.posts.getStats(activeProfileId);
+      const response = await socialApi.posts.getStats();
       return response.data;
     },
     staleTime: 2 * 60 * 1000,
@@ -121,15 +118,14 @@ export function usePostStatsApi() {
 // Comments Hooks
 // ============================================================================
 export function useCommentsApi(postId?: string) {
-  const { activeProfileId } = useActiveProfileStore();
   return useQuery({
-    queryKey: queryKeys.comments(postId, activeProfileId),
+    queryKey: queryKeys.comments(postId),
     queryFn: async () => {
       if (postId) {
         const response = await socialApi.comments.getByPostId(postId);
         return response.data;
       }
-      const response = await socialApi.comments.getAll(activeProfileId);
+      const response = await socialApi.comments.getAll();
       return response.data;
     },
     staleTime: 2 * 60 * 1000,
@@ -137,11 +133,10 @@ export function useCommentsApi(postId?: string) {
 }
 
 export function useSentimentStatsApi() {
-  const { activeProfileId } = useActiveProfileStore();
   return useQuery({
-    queryKey: queryKeys.sentimentStats(activeProfileId),
+    queryKey: queryKeys.sentimentStats,
     queryFn: async () => {
-      const response = await socialApi.comments.getSentimentStats(activeProfileId);
+      const response = await socialApi.comments.getSentimentStats();
       return response.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -156,9 +151,10 @@ export function useAnalyzeSentimentApi() {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['sentiment-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['comments'] });
-      queryClient.invalidateQueries({ queryKey: ['sentiment-trend'] });
+      // Invalidate all sentiment-related queries to refresh UI
+      queryClient.invalidateQueries({ queryKey: queryKeys.sentimentStats });
+      queryClient.invalidateQueries({ queryKey: queryKeys.comments() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sentimentTrend() });
     },
   });
 }
@@ -173,16 +169,15 @@ export function useDemographicsApi(accountId?: string) {
       const response = await socialApi.audience.getDemographics(accountId);
       return response.data;
     },
-    staleTime: 10 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
 export function useAudienceGrowthApi(days: number = 30) {
-  const { activeProfileId } = useActiveProfileStore();
   return useQuery({
-    queryKey: queryKeys.audienceGrowth(days, activeProfileId),
+    queryKey: queryKeys.audienceGrowth(days),
     queryFn: async () => {
-      const response = await socialApi.audience.getGrowth(days, activeProfileId);
+      const response = await socialApi.audience.getGrowth(days);
       return response.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -204,11 +199,10 @@ export function useAudienceSummaryApi() {
 // Analytics Hooks
 // ============================================================================
 export function useEngagementAnalyticsApi(days: number = 30) {
-  const { activeProfileId } = useActiveProfileStore();
   return useQuery({
-    queryKey: queryKeys.engagement(days, activeProfileId),
+    queryKey: queryKeys.engagement(days),
     queryFn: async () => {
-      const response = await socialApi.analytics.getEngagement(days, activeProfileId);
+      const response = await socialApi.analytics.getEngagement(days);
       return response.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -233,16 +227,15 @@ export function useBestPostingTimesApi(platform?: SocialPlatform) {
       const response = await socialApi.analytics.getBestPostingTimes(platform);
       return response.data;
     },
-    staleTime: 30 * 60 * 1000,
+    staleTime: 30 * 60 * 1000, // 30 minutes
   });
 }
 
 export function useDashboardSummaryApi() {
-  const { activeProfileId } = useActiveProfileStore();
   return useQuery({
-    queryKey: queryKeys.dashboardSummary(activeProfileId),
+    queryKey: queryKeys.dashboardSummary,
     queryFn: async () => {
-      const response = await socialApi.analytics.getDashboardSummary(activeProfileId);
+      const response = await socialApi.analytics.getDashboardSummary();
       return response.data;
     },
     staleTime: 2 * 60 * 1000,

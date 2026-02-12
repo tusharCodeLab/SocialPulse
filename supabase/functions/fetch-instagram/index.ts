@@ -6,10 +6,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Using Facebook Graph API to access Instagram Business/Creator accounts
+// This works with tokens that have pages_show_list, instagram_basic permissions
 const FACEBOOK_GRAPH_API = "https://graph.facebook.com/v18.0";
 
+// Helper to add delay between API calls to avoid rate limiting
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Check if response is a rate limit error
 function isRateLimitError(responseText: string): boolean {
   try {
     const parsed = JSON.parse(responseText);
@@ -31,11 +35,23 @@ interface InstagramMedia {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    const ACCESS_TOKEN = Deno.env.get("INSTAGRAM_ACCESS_TOKEN");
+    if (!ACCESS_TOKEN) {
+      console.error("INSTAGRAM_ACCESS_TOKEN not configured");
+      return new Response(
+        JSON.stringify({ error: "Instagram access token not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Token validated - proceed with fetch
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -49,8 +65,8 @@ serve(async (req) => {
       );
     }
 
-    const authToken = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabase.auth.getUser(authToken);
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
     if (userError || !user) {
       return new Response(
@@ -59,67 +75,19 @@ serve(async (req) => {
       );
     }
 
-    // Determine which Instagram token to use
-    let ACCESS_TOKEN: string | null = null;
-    let userProvidedToken = false;
+    console.log(`Fetching Instagram data for user: ${user.id}`);
 
-    // Check for user-provided token in request body
-    let body: { token?: string; token_id?: string } = {};
-    try {
-      body = await req.json();
-    } catch {
-      // No body provided, that's fine
-    }
-
-    if (body.token) {
-      // Validate token format
-      const trimmed = body.token.trim();
-      if (trimmed.length > 500 || !/^[A-Za-z0-9_\-\.]+$/.test(trimmed)) {
-        return new Response(
-          JSON.stringify({ error: "Invalid token format. Must be alphanumeric, max 500 characters." }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      ACCESS_TOKEN = trimmed;
-      userProvidedToken = true;
-    } else if (body.token_id) {
-      // Look up token from instagram_tokens table
-      const { data: tokenRecord, error: tokenError } = await supabase
-        .from("instagram_tokens")
-        .select("access_token")
-        .eq("id", body.token_id)
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (tokenError || !tokenRecord) {
-        return new Response(
-          JSON.stringify({ error: "Token not found or unauthorized" }),
-          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      ACCESS_TOKEN = tokenRecord.access_token;
-    } else {
-      // Fall back to shared env token
-      ACCESS_TOKEN = Deno.env.get("INSTAGRAM_ACCESS_TOKEN") || null;
-    }
-
-    if (!ACCESS_TOKEN) {
-      return new Response(
-        JSON.stringify({ error: "No Instagram access token available. Add a profile with your own token." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    console.log(`Fetching Instagram data for user: ${user.id}, userProvided: ${userProvidedToken}`);
-
-    // Step 1: Get Facebook Pages
+    // Step 1: Get Facebook Pages connected to this token
+    console.log("Fetching Facebook Pages...");
     const pagesResponse = await fetch(
       `${FACEBOOK_GRAPH_API}/me/accounts?access_token=${ACCESS_TOKEN}`
     );
     
     const pagesRawResponse = await pagesResponse.text();
+    console.log("Facebook Pages API raw response:", pagesRawResponse);
     
     if (!pagesResponse.ok) {
+      console.error("Facebook Pages API error:", pagesRawResponse);
       const statusCode = isRateLimitError(pagesRawResponse) ? 429 : 400;
       return new Response(
         JSON.stringify({ 
@@ -137,14 +105,17 @@ serve(async (req) => {
     let pagesData;
     try {
       pagesData = JSON.parse(pagesRawResponse);
-    } catch {
+    } catch (e) {
+      console.error("Failed to parse pages response:", e);
       return new Response(
-        JSON.stringify({ error: "Invalid response from Facebook API" }),
+        JSON.stringify({ error: "Invalid response from Facebook API", details: pagesRawResponse }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    console.log(`Found ${pagesData.data?.length || 0} Facebook Pages`);
 
     if (!pagesData.data || pagesData.data.length === 0) {
+      console.log("No Facebook Pages found");
       return new Response(
         JSON.stringify({ 
           error: "No Facebook Pages found", 
@@ -154,16 +125,17 @@ serve(async (req) => {
       );
     }
 
-    // Step 2: Find Instagram Business Account
+    // Step 2: Get Instagram Business Account for each page
     let instagramAccountId: string | null = null;
     let instagramUsername: string | null = null;
-    let instagramFollowersCount = 0;
-    let instagramMediaCount = 0;
+    let instagramFollowersCount: number = 0;
+    let instagramMediaCount: number = 0;
     let pageAccessToken: string | null = null;
-    let pageId: string | null = null;
 
     for (const page of pagesData.data) {
-      await delay(500);
+      await delay(500); // Delay between page checks to avoid rate limits
+      console.log(`Checking page: ${page.name} (${page.id})`);
+      
       const igAccountResponse = await fetch(
         `${FACEBOOK_GRAPH_API}/${page.id}?fields=instagram_business_account{id,username,followers_count,follows_count,media_count}&access_token=${page.access_token || ACCESS_TOKEN}`
       );
@@ -176,7 +148,7 @@ serve(async (req) => {
           instagramFollowersCount = igData.instagram_business_account.followers_count || 0;
           instagramMediaCount = igData.instagram_business_account.media_count || 0;
           pageAccessToken = page.access_token || ACCESS_TOKEN;
-          pageId = page.id;
+          console.log(`Found Instagram account: @${instagramUsername} (${instagramAccountId}), Followers: ${instagramFollowersCount}, Posts: ${instagramMediaCount}`);
           break;
         }
       }
@@ -186,35 +158,13 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           error: "No Instagram Business Account found",
-          hint: "Your Facebook Page must be connected to an Instagram Business or Creator account."
+          hint: "Your Facebook Page must be connected to an Instagram Business or Creator account. Go to your Facebook Page settings to connect Instagram."
         }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Step 3: Save token to instagram_tokens if user-provided
-    if (userProvidedToken) {
-      const { error: tokenSaveError } = await supabase
-        .from("instagram_tokens")
-        .upsert({
-          user_id: user.id,
-          access_token: ACCESS_TOKEN,
-          instagram_user_id: instagramAccountId,
-          instagram_username: instagramUsername,
-          page_access_token: pageAccessToken,
-          page_id: pageId,
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: "user_id,instagram_user_id",
-          ignoreDuplicates: false,
-        });
-
-      if (tokenSaveError) {
-        console.error("Error saving token:", tokenSaveError);
-      }
-    }
-
-    // Step 4: Upsert social account — use instagram_user_id as unique key per user
+    // Step 3: Upsert social account in database WITH follower count
     const { data: socialAccount, error: accountError } = await supabase
       .from("social_accounts")
       .upsert({
@@ -226,7 +176,7 @@ serve(async (req) => {
         is_connected: true,
         updated_at: new Date().toISOString(),
       }, {
-        onConflict: "user_id,platform,account_handle",
+        onConflict: "user_id,platform",
         ignoreDuplicates: false,
       })
       .select()
@@ -234,9 +184,12 @@ serve(async (req) => {
 
     if (accountError) {
       console.error("Error upserting social account:", accountError);
+    } else {
+      console.log("Social account upserted:", socialAccount?.id, "with followers:", instagramFollowersCount);
     }
 
-    // Step 5: Fetch media
+    // Step 4: Fetch recent media from Instagram Business Account
+    console.log("Fetching Instagram media...");
     const mediaResponse = await fetch(
       `${FACEBOOK_GRAPH_API}/${instagramAccountId}/media?fields=id,caption,media_type,media_url,permalink,timestamp,like_count,comments_count&limit=25&access_token=${pageAccessToken}`
     );
@@ -245,9 +198,13 @@ serve(async (req) => {
     if (mediaResponse.ok) {
       const mediaJson = await mediaResponse.json();
       mediaData = mediaJson.data || [];
+      console.log(`Fetched ${mediaData.length} media items`);
+    } else {
+      const mediaError = await mediaResponse.text();
+      console.error("Failed to fetch media:", mediaError);
     }
 
-    // Step 6: Save posts
+    // Step 5: Save posts to database
     const postsToUpsert = mediaData.map((media) => ({
       user_id: user.id,
       platform: "instagram" as const,
@@ -263,18 +220,24 @@ serve(async (req) => {
     }));
 
     if (postsToUpsert.length > 0) {
-      await supabase
+      const { error: postsError } = await supabase
         .from("posts")
         .upsert(postsToUpsert, {
           onConflict: "user_id,external_post_id",
           ignoreDuplicates: false,
         });
+
+      if (postsError) {
+        console.error("Error upserting posts:", postsError);
+      } else {
+        console.log(`Upserted ${postsToUpsert.length} posts`);
+      }
     }
 
-    // Step 7: Fetch comments for top 5 posts
+    // Step 6: Fetch comments for each post
     let totalComments = 0;
-    for (const media of mediaData.slice(0, 5)) {
-      await delay(1000);
+    for (const media of mediaData.slice(0, 5)) { // Reduced from 10 to 5 to avoid rate limits
+      await delay(1000); // 1 second delay between comment fetches
       try {
         const commentsResponse = await fetch(
           `${FACEBOOK_GRAPH_API}/${media.id}/comments?fields=id,text,timestamp,username&limit=50&access_token=${pageAccessToken}`
@@ -283,6 +246,7 @@ serve(async (req) => {
         if (commentsResponse.ok) {
           const commentsJson = await commentsResponse.json();
           const comments = commentsJson.data || [];
+          console.log(`Fetched ${comments.length} comments for media ${media.id}`);
           
           if (comments.length > 0) {
             const { data: postData } = await supabase
@@ -293,31 +257,58 @@ serve(async (req) => {
               .maybeSingle();
 
             if (postData) {
-              for (const c of comments) {
+              const commentsToInsert = comments.map((c: { id: string; text: string; timestamp: string; username?: string }) => ({
+                user_id: user.id,
+                post_id: postData.id,
+                content: c.text,
+                author_name: c.username || "Anonymous",
+                created_at: c.timestamp,
+                external_comment_id: c.id, // Use Instagram's comment ID for deduplication
+              }));
+
+              // Use insert with proper conflict handling on external_comment_id
+              for (const comment of commentsToInsert) {
                 const { error: insertError } = await supabase
                   .from("post_comments")
-                  .upsert({
-                    user_id: user.id,
-                    post_id: postData.id,
-                    content: c.text,
-                    author_name: c.username || "Anonymous",
-                    created_at: c.timestamp,
-                    external_comment_id: c.id,
-                  }, {
+                  .upsert(comment, {
                     onConflict: "user_id,external_comment_id",
                     ignoreDuplicates: true,
                   });
                 
-                if (!insertError) totalComments++;
+                if (!insertError) {
+                  totalComments++;
+                } else {
+                  console.error(`Error inserting comment:`, insertError.message);
+                }
               }
             }
           }
+        } else {
+          const errorText = await commentsResponse.text();
+          console.log(`No comments available for media ${media.id}: ${commentsResponse.status}`);
         }
       } catch (e) {
         console.error(`Error fetching comments for ${media.id}:`, e);
       }
     }
+    console.log(`Saved ${totalComments} comments total`);
 
+    // Step 7: Try to fetch insights (requires instagram_manage_insights)
+    let hasInsights = false;
+    try {
+      const insightsResponse = await fetch(
+        `${FACEBOOK_GRAPH_API}/${instagramAccountId}/insights?metric=impressions,reach,profile_views&period=day&access_token=${pageAccessToken}`
+      );
+      
+      if (insightsResponse.ok) {
+        hasInsights = true;
+        console.log("Insights available");
+      }
+    } catch (e) {
+      console.log("Insights not available");
+    }
+
+    // Return summary
     return new Response(
       JSON.stringify({
         success: true,
@@ -326,11 +317,11 @@ serve(async (req) => {
           id: instagramAccountId,
           followers_count: instagramFollowersCount,
           media_count: instagramMediaCount,
-          social_account_id: socialAccount?.id,
         },
         imported: {
           posts: postsToUpsert.length,
           comments: totalComments,
+          hasInsights,
         },
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

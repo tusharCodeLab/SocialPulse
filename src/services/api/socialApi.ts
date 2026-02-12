@@ -106,7 +106,6 @@ export const postsApi = {
     platform?: SocialPlatform; 
     limit?: number;
     after?: string;
-    socialAccountId?: string | null;
   }): Promise<APIResponse<Post[]>> {
     let query = supabase
       .from('posts')
@@ -115,10 +114,6 @@ export const postsApi = {
 
     if (options?.platform) {
       query = query.eq('platform', options.platform);
-    }
-
-    if (options?.socialAccountId) {
-      query = query.eq('social_account_id', options.socialAccountId);
     }
 
     const limit = options?.limit || 25;
@@ -199,7 +194,7 @@ export const postsApi = {
     };
   },
 
-  async getStats(socialAccountId?: string | null): Promise<APIResponse<{
+  async getStats(): Promise<APIResponse<{
     totalPosts: number;
     totalLikes: number;
     totalComments: number;
@@ -207,15 +202,9 @@ export const postsApi = {
     totalReach: number;
     avgEngagement: number;
   }>> {
-    let query = supabase
+    const { data: posts, error } = await supabase
       .from('posts')
       .select('likes_count, comments_count, shares_count, reach, engagement_rate');
-
-    if (socialAccountId) {
-      query = query.eq('social_account_id', socialAccountId);
-    }
-
-    const { data: posts, error } = await query;
 
     if (error) throw error;
 
@@ -275,18 +264,12 @@ export const commentsApi = {
     };
   },
 
-  async getAll(socialAccountId?: string | null): Promise<APIResponse<Comment[]>> {
-    let query = supabase
+  async getAll(): Promise<APIResponse<Comment[]>> {
+    const { data: comments, error } = await supabase
       .from('post_comments')
-      .select('*, posts!inner(social_account_id)')
+      .select('*')
       .order('created_at', { ascending: false })
       .limit(100);
-
-    if (socialAccountId) {
-      query = query.eq('posts.social_account_id', socialAccountId);
-    }
-
-    const { data: comments, error } = await query;
 
     if (error) throw error;
 
@@ -344,7 +327,7 @@ export const commentsApi = {
     };
   },
 
-  async getSentimentStats(socialAccountId?: string | null): Promise<APIResponse<{
+  async getSentimentStats(): Promise<APIResponse<{
     total: number;
     positive: number;
     negative: number;
@@ -354,13 +337,9 @@ export const commentsApi = {
     neutralPercent: number;
     avgScore: number;
   }>> {
-    let query = supabase
+    const { data: comments, error } = await supabase
       .from('post_comments')
       .select('sentiment, sentiment_score');
-
-    // Note: filtering by socialAccountId on comments requires a join through posts
-    // For simplicity, we fetch all and filter if needed
-    const { data: comments, error } = await query;
 
     if (error) throw error;
 
@@ -417,21 +396,15 @@ export const audienceApi = {
     };
   },
 
-  async getGrowth(days: number = 30, socialAccountId?: string | null): Promise<APIResponse<AudienceGrowth[]>> {
+  async getGrowth(days: number = 30): Promise<APIResponse<AudienceGrowth[]>> {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    let query = supabase
+    const { data: metrics, error } = await supabase
       .from('audience_metrics')
       .select('*')
       .gte('date', startDate.toISOString().split('T')[0])
       .order('date', { ascending: true });
-
-    if (socialAccountId) {
-      query = query.eq('social_account_id', socialAccountId);
-    }
-
-    const { data: metrics, error } = await query;
 
     if (error) throw error;
 
@@ -500,21 +473,15 @@ export const audienceApi = {
 // Analytics API
 // ============================================================================
 export const analyticsApi = {
-  async getEngagement(days: number = 30, socialAccountId?: string | null): Promise<APIResponse<EngagementAnalytics[]>> {
+  async getEngagement(days: number = 30): Promise<APIResponse<EngagementAnalytics[]>> {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    let query = supabase
+    const { data: posts, error } = await supabase
       .from('posts')
       .select('published_at, likes_count, comments_count, shares_count, reach, impressions')
       .gte('published_at', startDate.toISOString())
       .order('published_at', { ascending: true });
-
-    if (socialAccountId) {
-      query = query.eq('social_account_id', socialAccountId);
-    }
-
-    const { data: posts, error } = await query;
 
     if (error) throw error;
 
@@ -620,7 +587,7 @@ export const analyticsApi = {
     };
   },
 
-  async getDashboardSummary(socialAccountId?: string | null): Promise<APIResponse<{
+  async getDashboardSummary(): Promise<APIResponse<{
     totalFollowers: number;
     totalEngagement: number;
     totalReach: number;
@@ -629,15 +596,9 @@ export const analyticsApi = {
     positiveSentimentPercent: number;
   }>> {
     // Get posts stats
-    let postsQuery = supabase
+    const { data: posts } = await supabase
       .from('posts')
       .select('likes_count, comments_count, shares_count, reach, engagement_rate');
-
-    if (socialAccountId) {
-      postsQuery = postsQuery.eq('social_account_id', socialAccountId);
-    }
-
-    const { data: posts } = await postsQuery;
 
     const postList = posts || [];
     const totalEngagement = postList.reduce((sum, p) => 
@@ -648,15 +609,9 @@ export const analyticsApi = {
       : 0;
 
     // Get followers from social accounts
-    let accountsQuery = supabase
+    const { data: accounts } = await supabase
       .from('social_accounts')
       .select('followers_count');
-
-    if (socialAccountId) {
-      accountsQuery = accountsQuery.eq('id', socialAccountId);
-    }
-
-    const { data: accounts } = await accountsQuery;
 
     const totalFollowers = (accounts || []).reduce((sum, a) => sum + (a.followers_count || 0), 0);
 
