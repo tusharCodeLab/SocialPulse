@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.calculate-best-times]
 verify_jwt = false
+
+[functions.ai-post-coach]
+verify_jwt = false

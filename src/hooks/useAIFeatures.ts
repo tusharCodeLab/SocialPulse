@@ -90,3 +90,27 @@ export function useCalculateBestTimes() {
     },
   });
 }
+
+// ============================================================================
+// AI Post Coach
+// ============================================================================
+export interface PostCoaching {
+  overallScore: number;
+  scoreLabel: string;
+  captionTips: string[];
+  hashtagSuggestions: string[];
+  contentIdeas: string[];
+  performancePrediction: string;
+  topStrength: string;
+  biggestOpportunity: string;
+}
+
+export function useAIPostCoach() {
+  return useMutation({
+    mutationFn: async (): Promise<{ coaching: PostCoaching | null; message?: string }> => {
+      const { data, error } = await supabase.functions.invoke("ai-post-coach");
+      if (error) throw error;
+      return data;
+    },
+  });
+}
