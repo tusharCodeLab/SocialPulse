@@ -6,7 +6,7 @@ import {
   FileText,
   Users,
   Heart,
-  Brain,
+  Activity,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -25,8 +25,8 @@ const navGroups = [
     { to: '/posts', icon: FileText, label: 'Posts Analysis' },
     { to: '/audience', icon: Users, label: 'Audience Insights' },
     { to: '/sentiment', icon: Heart, label: 'Sentiment' },
+    { to: '/trends', icon: Activity, label: 'Trend Intelligence' },
   ]},
-  { label: 'AI & Tools', items: [{ to: '/ai-tools', icon: Brain, label: 'AI Tools' }] },
   { label: 'Account', items: [{ to: '/settings', icon: Settings, label: 'Settings' }] },
 ];
 

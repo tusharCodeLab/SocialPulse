@@ -8,24 +8,32 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts';
-import { Users, TrendingUp, UserPlus, Loader2 } from 'lucide-react';
+import { Users, TrendingUp, UserPlus, Loader2, Clock, Zap } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { ChartCard } from '@/components/dashboard/ChartCard';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import { 
   useAudienceGrowthApi, 
   useAudienceSummaryApi,
   useBestPostingTimesApi,
 } from '@/hooks/useSocialApi';
+import { useCalculateBestTimes } from '@/hooks/useAIFeatures';
 
 const COLORS = {
   primary: 'hsl(173, 80%, 45%)',
 };
 
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 export default function AudienceInsights() {
+  const { toast } = useToast();
   const { data: growth, isLoading: loadingGrowth } = useAudienceGrowthApi(30);
   const { data: summary, isLoading: loadingSummary } = useAudienceSummaryApi();
   const { data: bestTimes, isLoading: loadingTimes } = useBestPostingTimesApi();
+  const calculateBestTimes = useCalculateBestTimes();
 
   const isLoading = loadingGrowth || loadingSummary || loadingTimes;
 
@@ -33,6 +41,15 @@ export default function AudienceInsights() {
     date: new Date(g.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
     followers: g.followersCount,
   })).slice(-14) || [];
+
+  const handleCalculateTimes = async () => {
+    try {
+      await calculateBestTimes.mutateAsync();
+      toast({ title: 'Success', description: 'Best posting times calculated!' });
+    } catch (error) {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to calculate', variant: 'destructive' });
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -53,32 +70,13 @@ export default function AudienceInsights() {
         <>
           {/* Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <MetricCard
-              title="Total Followers"
-              value={summary?.totalFollowers.toLocaleString() || '0'}
-              icon={Users}
-              delay={0.1}
-            />
-            <MetricCard
-              title="New This Week"
-              value={`+${summary?.newFollowersWeek.toLocaleString() || '0'}`}
-              icon={UserPlus}
-              delay={0.15}
-            />
-            <MetricCard
-              title="Following"
-              value={summary?.totalFollowing.toLocaleString() || '0'}
-              icon={TrendingUp}
-              delay={0.2}
-            />
+            <MetricCard title="Total Followers" value={summary?.totalFollowers.toLocaleString() || '0'} icon={Users} delay={0.1} />
+            <MetricCard title="New This Week" value={`+${summary?.newFollowersWeek.toLocaleString() || '0'}`} icon={UserPlus} delay={0.15} />
+            <MetricCard title="Following" value={summary?.totalFollowing.toLocaleString() || '0'} icon={TrendingUp} delay={0.2} />
           </div>
 
           {/* Follower Growth Chart */}
-          <ChartCard
-            title="Follower Growth"
-            subtitle="Follower count over time"
-            delay={0.3}
-          >
+          <ChartCard title="Follower Growth" subtitle="Follower count over time" delay={0.3}>
             <div className="h-[300px]">
               {growthData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
@@ -104,67 +102,114 @@ export default function AudienceInsights() {
             </div>
           </ChartCard>
 
-          {/* Best Posting Times Heatmap */}
-          {bestTimes && bestTimes.length > 0 && (
-            <div className="mt-6">
-              <ChartCard
-                title="Best Posting Times"
-                subtitle="When your audience engages most (based on your post data)"
-                delay={0.4}
-              >
-                <div className="grid grid-cols-7 gap-2 mt-4">
-                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIndex) => {
-                    const adjustedDay = dayIndex === 6 ? 0 : dayIndex + 1;
-                    return (
-                      <div key={day} className="text-center">
-                        <span className="text-xs text-muted-foreground mb-2 block">{day}</span>
-                        <div className="space-y-1">
-                          {[9, 12, 15, 18, 21].map((hour) => {
-                            const match = bestTimes.find(
-                              t => t.dayOfWeek === adjustedDay && t.hourOfDay === hour
-                            );
-                            const maxScore = Math.max(...bestTimes.map(t => t.engagementScore), 1);
-                            const opacity = match ? match.engagementScore / maxScore : 0.05;
-                            return (
-                              <motion.div
-                                key={hour}
-                                initial={{ opacity: 0, scale: 0 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: 0.5 + (dayIndex * 5 + [9, 12, 15, 18, 21].indexOf(hour)) * 0.02 }}
-                                className="h-6 rounded-sm"
-                                style={{
-                                  backgroundColor: match
-                                    ? `hsla(173, 80%, 45%, ${opacity * 0.8 + 0.1})`
-                                    : 'hsla(222, 30%, 15%, 0.3)',
-                                }}
-                                title={match
-                                  ? `${day} ${hour}:00 — ${match.engagementScore.toFixed(0)} avg engagement (${match.sampleSize} posts)`
-                                  : `${day} ${hour}:00 — No data`}
-                              />
-                            );
-                          })}
+          {/* Best Time to Post — AI Feature */}
+          <div className="mt-6">
+            <ChartCard title="Best Time to Post" subtitle="AI-calculated engagement-based time analysis" delay={0.35}>
+              <div className="flex justify-end mb-4">
+                <Button
+                  size="sm"
+                  onClick={handleCalculateTimes}
+                  disabled={calculateBestTimes.isPending}
+                >
+                  {calculateBestTimes.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Clock className="h-4 w-4 mr-2" />
+                  )}
+                  Analyze Times
+                </Button>
+              </div>
+
+              {bestTimes && bestTimes.length > 0 ? (
+                <>
+                  {/* Top 5 ranked list */}
+                  <div className="space-y-3 mb-6">
+                    {bestTimes.slice(0, 5).map((time, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.4 + i * 0.05 }}
+                        className="flex items-center justify-between p-3 rounded-lg bg-muted/30"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-bold text-primary">#{i + 1}</span>
+                          <div>
+                            <p className="font-medium text-foreground">
+                              {DAYS[time.dayOfWeek]} {`${time.hourOfDay.toString().padStart(2, '0')}:00`}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {time.sampleSize} post{time.sampleSize !== 1 ? 's' : ''} analyzed
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="flex items-center justify-center gap-4 mt-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-sm bg-primary/10" />
-                    <span className="text-xs text-muted-foreground">Low</span>
+                        <Badge variant="secondary">
+                          <Zap className="h-3 w-3 mr-1" />
+                          {time.engagementScore.toFixed(0)} avg
+                        </Badge>
+                      </motion.div>
+                    ))}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-sm bg-primary/50" />
-                    <span className="text-xs text-muted-foreground">Medium</span>
+
+                  {/* Heatmap */}
+                  <div className="grid grid-cols-7 gap-2 mt-4">
+                    {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, dayIndex) => {
+                      const adjustedDay = dayIndex === 6 ? 0 : dayIndex + 1;
+                      return (
+                        <div key={day} className="text-center">
+                          <span className="text-xs text-muted-foreground mb-2 block">{day}</span>
+                          <div className="space-y-1">
+                            {[9, 12, 15, 18, 21].map((hour) => {
+                              const match = bestTimes.find(
+                                t => t.dayOfWeek === adjustedDay && t.hourOfDay === hour
+                              );
+                              const maxScore = Math.max(...bestTimes.map(t => t.engagementScore), 1);
+                              const opacity = match ? match.engagementScore / maxScore : 0.05;
+                              return (
+                                <motion.div
+                                  key={hour}
+                                  initial={{ opacity: 0, scale: 0 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  transition={{ delay: 0.5 + (dayIndex * 5 + [9, 12, 15, 18, 21].indexOf(hour)) * 0.02 }}
+                                  className="h-6 rounded-sm"
+                                  style={{
+                                    backgroundColor: match
+                                      ? `hsla(173, 80%, 45%, ${opacity * 0.8 + 0.1})`
+                                      : 'hsla(222, 30%, 15%, 0.3)',
+                                  }}
+                                  title={match
+                                    ? `${day} ${hour}:00 — ${match.engagementScore.toFixed(0)} avg engagement (${match.sampleSize} posts)`
+                                    : `${day} ${hour}:00 — No data`}
+                                />
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-sm bg-primary" />
-                    <span className="text-xs text-muted-foreground">High</span>
+                  <div className="flex items-center justify-center gap-4 mt-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm bg-primary/10" />
+                      <span className="text-xs text-muted-foreground">Low</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm bg-primary/50" />
+                      <span className="text-xs text-muted-foreground">Medium</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm bg-primary" />
+                      <span className="text-xs text-muted-foreground">High</span>
+                    </div>
                   </div>
-                </div>
-              </ChartCard>
-            </div>
-          )}
+                </>
+              ) : (
+                <p className="text-center text-muted-foreground py-8">
+                  Click "Analyze Times" to calculate best posting times from your data.
+                </p>
+              )}
+            </ChartCard>
+          </div>
         </>
       )}
     </DashboardLayout>
