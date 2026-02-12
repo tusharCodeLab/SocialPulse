@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { ReactNode, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { MoreHorizontal } from 'lucide-react';
 
 interface ChartCardProps {
   title: string;
@@ -78,13 +77,6 @@ export function ChartCard({ title, subtitle, children, action, className, delay 
             className="flex items-center gap-2"
           >
             {action}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </motion.button>
           </motion.div>
         </div>
         {children}
