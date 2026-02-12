@@ -41,7 +41,15 @@ serve(async (req) => {
     
     if (req.method === "POST") {
       const body = await req.json().catch(() => ({}));
-      testToken = body.token || null;
+      // Validate token format: must be a non-empty string, max 500 chars, alphanumeric with common token chars
+      if (body.token && typeof body.token === "string" && body.token.length <= 500 && /^[A-Za-z0-9_\-\.]+$/.test(body.token)) {
+        testToken = body.token;
+      } else if (body.token) {
+        return new Response(
+          JSON.stringify({ error: "Invalid token format" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
     
     const ACCESS_TOKEN = testToken || Deno.env.get("INSTAGRAM_ACCESS_TOKEN");
