@@ -40,7 +40,8 @@ serve(async (req) => {
       );
     }
 
-    const { comments } = await req.json();
+    const body = await req.json();
+    const { comments } = body;
     
     if (!comments || !Array.isArray(comments) || comments.length === 0) {
       return new Response(
@@ -57,10 +58,29 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Analyzing sentiment for ${comments.length} comments`);
+    // Validate and sanitize each comment
+    const validatedComments = [];
+    for (const c of comments) {
+      if (!c || typeof c !== "object") continue;
+      if (typeof c.id !== "string" || c.id.length > 100) continue;
+      if (typeof c.content !== "string" || c.content.length === 0) continue;
+      validatedComments.push({
+        id: c.id,
+        content: c.content.slice(0, 5000), // Limit content length
+      });
+    }
+
+    if (validatedComments.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "No valid comments provided. Each comment must have an id and content." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log(`Analyzing sentiment for ${validatedComments.length} comments`);
 
     // Prepare comments for analysis
-    const commentsText = comments.map((c: any, i: number) => `${i + 1}. "${c.content}"`).join("\n");
+    const commentsText = validatedComments.map((c, i: number) => `${i + 1}. "${c.content}"`).join("\n");
 
     const prompt = `Analyze the sentiment of each social media comment below. For each, classify as positive, negative, or neutral with a confidence score 0-1.\n\nComments:\n${commentsText}`;
 
@@ -142,7 +162,7 @@ serve(async (req) => {
     // Update comments in database
     const updates = [];
     for (const result of analysisResults.results) {
-      const comment = comments[result.index - 1];
+      const comment = validatedComments[result.index - 1];
       if (comment) {
         updates.push(
           supabase
