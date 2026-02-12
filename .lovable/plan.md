@@ -1,82 +1,83 @@
 
 
-# Run AI Sentiment Analysis Locally with Google Gemini (Free)
+# Multi-Profile Instagram Analytics
 
-## What Needs to Change
+## Overview
+Add the ability to connect and view multiple Instagram profiles, with a profile switcher in the sidebar and per-profile analytics across all dashboard pages.
 
-Your project currently uses **Lovable AI Gateway** (a Lovable-only service) to power two AI features:
-1. **Sentiment Analysis** -- classifies Instagram comments as positive/negative/neutral
-2. **Insights Generation** -- generates actionable social media advice
+## Current Limitation
+The app currently uses a single shared `INSTAGRAM_ACCESS_TOKEN` stored as a backend secret. This means all users see the same Instagram account's data. To support multiple profiles, each user would need to provide their own Instagram tokens.
 
-The Lovable AI Gateway won't work outside Lovable Cloud. We'll replace it with **Google Gemini API**, which is free to use.
+## Architecture
 
-## Step-by-Step Setup for You
+### 1. Profile Management (Settings Page)
+- Add a "Add Profile" button that lets users input an Instagram access token (from Meta Graph API Explorer)
+- Store tokens in the existing `instagram_tokens` table (already has RLS)
+- Each token maps to one Instagram Business account
+- Show a list of connected profiles with username, follower count, and sync status
+- Allow removing profiles
 
-### 1. Get Your Free Google Gemini API Key
-- Go to [Google AI Studio](https://aistudio.google.com/apikeys)
-- Sign in with your Google account
-- Click "Create API Key"
-- Copy the key -- this is your `GOOGLE_GEMINI_API_KEY`
+### 2. Profile Switcher (Sidebar)
+- Add a dropdown/selector in the sidebar showing connected Instagram profiles
+- Store the active profile ID in a Zustand store (`activeProfileStore`)
+- All API queries filter by the selected `social_account_id`
 
-### 2. Store the Key Locally
-When running Supabase edge functions locally, you'll create a file called `supabase/.env.local` with:
-```
-GOOGLE_GEMINI_API_KEY=your_key_here
-```
+### 3. Per-Profile Data Fetching
+- Update the `fetch-instagram` edge function to accept a token from the `instagram_tokens` table (per user) instead of the shared env secret
+- Add a `social_account_id` filter to all API queries in `socialApi.ts`
+- Update React Query hooks to include the active profile ID in query keys for proper caching
 
-## Technical Changes (Code Modifications)
+### 4. Updated Pages
+- Dashboard, Posts Analysis, Audience Insights, Sentiment -- all filter by active profile
+- Add an "All Profiles" option for aggregate views
 
-### File 1: `supabase/functions/analyze-sentiment/index.ts`
-- Replace `AI_GATEWAY_URL` from `https://ai.gateway.lovable.dev/v1/chat/completions` to `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`
-- Replace `LOVABLE_API_KEY` with `GOOGLE_GEMINI_API_KEY`
-- Update the fetch call to use Google's API format (slightly different request/response structure)
-- The prompt and logic remain identical
+## Technical Details
 
-### File 2: `supabase/functions/generate-insights/index.ts`
-- Same changes as above -- swap the AI gateway URL and API key
-- Update request/response format to match Google Gemini's API
+### Database Changes
+- No new tables needed; use existing `instagram_tokens` and `social_accounts`
+- Add a migration to create an index on `social_accounts(user_id, platform)` if not present
 
-### What Stays the Same
-- All frontend code (React pages, hooks, components) -- no changes needed
-- Database schema and queries -- unchanged
-- The prompts sent to the AI -- identical
-- The Instagram sync function -- unchanged
+### Edge Function Changes (`fetch-instagram`)
+- Accept an optional `token_id` in the request body
+- Look up the token from `instagram_tokens` table for the authenticated user
+- Fall back to the env `INSTAGRAM_ACCESS_TOKEN` if no token_id provided
+- Store results linked to the correct `social_account_id`
 
-## How It Works After the Change
+### New Store (`src/stores/activeProfileStore.ts`)
+- `activeProfileId: string | null` -- the selected social account ID
+- `setActiveProfile(id)` -- switch profiles
+- Persisted to localStorage
 
-```text
-User clicks "Analyze Comments"
-        |
-Frontend calls edge function
-        |
-Edge function reads GOOGLE_GEMINI_API_KEY
-        |
-Calls Google Gemini API directly (free)
-        |
-Parses response, updates database
-        |
-Frontend shows sentiment results
-```
+### API Layer Changes (`socialApi.ts`)
+- Every query that touches `posts`, `post_comments`, `audience_metrics` adds `.eq('social_account_id', activeProfileId)` when a profile is selected
+- Query keys include the active profile ID
 
-## Running Locally
+### UI Components
+- `ProfileSwitcher` component in sidebar (avatar + username dropdown)
+- `AddProfileDialog` in Settings to input a new token
+- Profile list in Settings showing all connected accounts with sync/remove actions
 
-After the code changes, you'll run locally with:
-```bash
-# Start Supabase locally
-npx supabase start
+## Prompt for Lovable
 
-# Serve edge functions
-npx supabase functions serve --env-file supabase/.env.local
+Here is a ready-to-use prompt you can send:
 
-# Start frontend
-npm run dev
-```
+---
 
-## For Your Hackathon PPT
+**Add multi-profile Instagram support with the following:**
 
-You can mention:
-- **AI Model**: Google Gemini 2.0 Flash (free tier)
-- **Integration**: Serverless edge functions calling Gemini API
-- **Use Case**: Real-time sentiment classification of social media comments
-- **Cost**: Zero (free API tier)
+1. **Profile Switcher in Sidebar**: Add a dropdown at the top of the sidebar (below the logo) that shows all connected Instagram profiles from the `social_accounts` table. Users can switch between profiles. Store the active profile ID in a new Zustand store (`src/stores/activeProfileStore.ts`) persisted to localStorage.
 
+2. **Add Profile Flow in Settings**: On the Settings page, show a list of all connected Instagram profiles. Add an "Add Profile" button that opens a dialog where users paste an Instagram access token. When submitted, call the `fetch-instagram` edge function with that token to sync the profile data.
+
+3. **Update `fetch-instagram` edge function**: Accept an optional `token` field in the request body. If provided, use that token instead of the env `INSTAGRAM_ACCESS_TOKEN`. Validate the token format (alphanumeric, max 500 chars). Store the token in the `instagram_tokens` table for the user.
+
+4. **Filter all data by active profile**: Update all queries in `src/services/api/socialApi.ts` to filter by `social_account_id` matching the active profile from the store. Update React Query keys in `src/hooks/useSocialApi.ts` to include the active profile ID so data caches separately per profile.
+
+5. **Add "All Profiles" aggregate option**: The profile switcher should have an "All Profiles" option that shows combined data across all connected accounts (no `social_account_id` filter).
+
+---
+
+## Important Considerations
+- Each Instagram token requires Meta Graph API Explorer access with `pages_show_list`, `instagram_basic` permissions
+- Tokens expire and need manual refresh (no OAuth flow yet)
+- Rate limits apply per-token, so multiple profiles help distribute API calls
