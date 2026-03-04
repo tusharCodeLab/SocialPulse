@@ -9,6 +9,58 @@ const corsHeaders = {
 
 const YT_API = "https://www.googleapis.com/youtube/v3";
 
+type ChannelLookup = {
+  handle?: string;
+  channelId?: string;
+  username?: string;
+  original: string;
+};
+
+const parseChannelInput = (rawInput: string): ChannelLookup => {
+  const raw = rawInput.trim();
+  const out: ChannelLookup = { original: raw };
+
+  // Accept full YouTube URLs
+  try {
+    const url = new URL(raw);
+    if (url.hostname.includes("youtube.com") || url.hostname.includes("youtu.be")) {
+      const path = url.pathname.replace(/\/$/, "");
+
+      if (path.startsWith("/@")) {
+        out.handle = path.slice(2);
+      } else if (path.startsWith("/channel/")) {
+        out.channelId = path.split("/")[2];
+      } else if (path.startsWith("/user/")) {
+        out.username = path.split("/")[2];
+      } else if (path.startsWith("/c/")) {
+        out.username = path.split("/")[2];
+      }
+
+      const queryChannelId = url.searchParams.get("channel_id");
+      if (!out.channelId && queryChannelId) out.channelId = queryChannelId;
+    }
+  } catch {
+    // Not a URL, continue with raw parsing
+  }
+
+  // Raw handle
+  if (!out.handle && raw.startsWith("@")) {
+    out.handle = raw.slice(1);
+  }
+
+  // Raw channel ID
+  if (!out.channelId && /^UC[a-zA-Z0-9_-]{20,}$/.test(raw)) {
+    out.channelId = raw;
+  }
+
+  // Fallback plain username/custom URL
+  if (!out.username && !out.handle && !out.channelId) {
+    out.username = raw;
+  }
+
+  return out;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });

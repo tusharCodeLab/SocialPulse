@@ -76,7 +76,7 @@ export default function Settings() {
       return;
     }
     if (!ytHandle.trim()) {
-      toast({ title: 'Enter a channel handle', description: 'E.g. @MrBeast or a channel ID', variant: 'destructive' });
+      toast({ title: 'Enter a channel identifier', description: 'Use @handle, channel ID (UC...), username, or a YouTube channel URL.', variant: 'destructive' });
       return;
     }
     setIsConnectingYouTube(true);
