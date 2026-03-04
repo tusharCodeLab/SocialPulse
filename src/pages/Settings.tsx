@@ -258,6 +258,19 @@ export default function Settings() {
             </motion.div>
           )}
 
+          {/* Facebook sync result */}
+          {fbSyncResult && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 p-4 rounded-lg bg-chart-sentiment-positive/10 border border-chart-sentiment-positive/20">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-chart-sentiment-positive/20"><Check className="h-5 w-5 text-chart-sentiment-positive" /></div>
+                <div>
+                  <p className="font-medium text-foreground">Successfully synced {fbSyncResult.pageName}</p>
+                  <p className="text-sm text-muted-foreground">Imported {fbSyncResult.posts} posts and {fbSyncResult.comments} comments</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
           {/* Coming soon note */}
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="mt-6 p-4 rounded-lg bg-muted/30 border border-border">
             <div className="flex items-center gap-3">
