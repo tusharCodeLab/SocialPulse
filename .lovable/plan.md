@@ -1,76 +1,37 @@
 
 
-# Sidebar Restructure and Cleanup
+## YouTube Sub-Pages & Sidebar Expansion
 
-## What Changes
+### Current State
+YouTube has only one sub-item ("YouTube Analytics") in the sidebar, while Instagram has four (Posts Analysis, Audience Insights, Sentiment, Trend Intelligence). The user wants parity.
 
-### 1. Remove Non-Working Features
-- **Remove the Reports page** (`/reports` route, `Reports.tsx`) -- it's a "Coming Soon" placeholder with no functionality
-- **Remove the Reports entry** from the sidebar navigation
+### Changes
 
-### 2. Reorganize Sidebar into Grouped Sections
-Instead of a flat list of 7 items, organize into logical groups with section labels:
+**1. Sidebar (`AppSidebar.tsx`)**
+Update the YouTube `platformGroups` entry to include 5 sub-items:
 
 ```text
-+-------------------------------+
-|  [Logo] Analytics             |
-|          Social Dashboard     |
-+-------------------------------+
-|  [AI-Powered badge]           |
-+-------------------------------+
-|                               |
-|  OVERVIEW                     |
-|    Dashboard                  |
-|                               |
-|  ANALYTICS                    |
-|    Posts Analysis              |
-|    Audience Insights           |
-|    Sentiment                   |
-|                               |
-|  AI & TOOLS                   |
-|    AI Tools                    |
-|                               |
-|  ACCOUNT                      |
-|    Settings                    |
-|                               |
-+-------------------------------+
-|  [User info]                  |
-|  [Sign Out]                   |
-|  [Collapse]                   |
-+-------------------------------+
+YouTube (collapsible)
+  ├─ YouTube Overview      → /youtube-analytics
+  ├─ Video Analysis        → /youtube-posts
+  ├─ Audience Insights     → /youtube-audience
+  ├─ Sentiment             → /youtube-sentiment
+  └─ Trend Intelligence    → /youtube-trends
 ```
 
-### 3. Files to Modify
-- **`src/components/navigation/AppSidebar.tsx`** -- Replace flat `navItems` array with grouped sections; add section labels that hide when collapsed
-- **`src/App.tsx`** -- Remove the `/reports` route
-- **`src/pages/Reports.tsx`** -- Delete this file
+**2. New Pages (4 files)**
+Create dedicated YouTube pages mirroring the Instagram page structure but with YouTube-specific metrics and YouTube red branding:
 
-### 4. Files Unchanged
-- `SidebarNavLink.tsx` -- Works as-is, no changes needed
-- `DashboardLayout.tsx` -- No changes needed
-- All other pages remain intact
+- **`src/pages/YouTubePostsAnalysis.tsx`** — Video performance table/cards (views, likes, comments, watch time per video). Mirrors Instagram's Posts Analysis.
+- **`src/pages/YouTubeAudience.tsx`** — Demographics (age/gender), top countries, traffic sources, subscriber growth. Mirrors Instagram's Audience Insights.
+- **`src/pages/YouTubeSentiment.tsx`** — Comment sentiment breakdown (positive/negative/neutral), sentiment trend chart, top comments. Mirrors Instagram's Sentiment.
+- **`src/pages/YouTubeTrends.tsx`** — Trending topics from comments, content performance trends, best upload times. Mirrors Instagram's Trend Intelligence.
 
-## Technical Details
+Each page uses the same `DashboardLayout`, premium card styling, and empty-state pattern as the existing `YouTubeAnalytics.tsx`.
 
-**AppSidebar.tsx changes:**
-- Replace the single `navItems` array with a grouped structure:
-  ```ts
-  const navGroups = [
-    { label: 'Overview', items: [{ to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' }] },
-    { label: 'Analytics', items: [
-      { to: '/posts', icon: FileText, label: 'Posts Analysis' },
-      { to: '/audience', icon: Users, label: 'Audience Insights' },
-      { to: '/sentiment', icon: Heart, label: 'Sentiment' },
-    ]},
-    { label: 'AI & Tools', items: [{ to: '/ai-tools', icon: Brain, label: 'AI Tools' }] },
-    { label: 'Account', items: [{ to: '/settings', icon: Settings, label: 'Settings' }] },
-  ];
-  ```
-- Render each group with a small uppercase label (hidden when sidebar is collapsed) and its nav items below
-- Remove `BarChart3` import (was for Reports)
+**3. Routes (`App.tsx`)**
+Add 4 new protected routes: `/youtube-posts`, `/youtube-audience`, `/youtube-sentiment`, `/youtube-trends`.
 
-**App.tsx changes:**
-- Remove `import Reports` and the `/reports` route
+**4. Rename existing page**
+Rename the current `YouTubeAnalytics` page header to "YouTube Overview" since it now serves as the overview/dashboard for the YouTube platform.
 
-**Reports.tsx:**
-- Delete the file entirely
