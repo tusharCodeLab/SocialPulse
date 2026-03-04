@@ -414,15 +414,21 @@ export const audienceApi = {
     };
   },
 
-  async getGrowth(days: number = 30): Promise<APIResponse<AudienceGrowth[]>> {
+  async getGrowth(days: number = 30, platform?: SocialPlatform): Promise<APIResponse<AudienceGrowth[]>> {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const { data: metrics, error } = await supabase
+    let query = supabase
       .from('audience_metrics')
       .select('*')
       .gte('date', startDate.toISOString().split('T')[0])
       .order('date', { ascending: true });
+
+    if (platform) {
+      query = query.eq('platform', platform);
+    }
+
+    const { data: metrics, error } = await query;
 
     if (error) throw error;
 
