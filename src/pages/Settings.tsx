@@ -112,12 +112,39 @@ export default function Settings() {
     }
   };
 
+  const handleConnectFacebook = async () => {
+    if (!user) {
+      toast({ title: 'Please sign in', description: 'You need to be signed in.', variant: 'destructive' });
+      return;
+    }
+    setIsConnectingFacebook(true);
+    setFbSyncResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-facebook');
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      setFbSyncResult({
+        posts: data.imported?.posts || 0,
+        comments: data.imported?.comments || 0,
+        pageName: data.page?.name || 'Facebook Page',
+      });
+      if (!connectedPlatforms.includes('facebook')) togglePlatform('facebook');
+      toast({ title: 'Facebook connected!', description: `Imported ${data.imported?.posts || 0} posts and ${data.imported?.comments || 0} comments from ${data.page?.name}` });
+    } catch (error) {
+      console.error('Facebook connection error:', error);
+      toast({ title: 'Connection failed', description: error instanceof Error ? error.message : 'Failed to connect Facebook', variant: 'destructive' });
+    } finally {
+      setIsConnectingFacebook(false);
+    }
+  };
+
   const handlePlatformClick = (platformId: string, supported: boolean) => {
     if (platformId === 'instagram' && supported) {
       handleConnectInstagram();
     } else if (platformId === 'youtube') {
-      // YouTube uses the form below, don't do anything on card click
       return;
+    } else if (platformId === 'facebook' && supported) {
+      handleConnectFacebook();
     } else if (!supported) {
       toast({ title: 'Coming soon', description: `${platformId.charAt(0).toUpperCase() + platformId.slice(1)} integration is coming soon!` });
     } else {
