@@ -29,6 +29,7 @@ export function useFacebookPosts() {
       const { data, error } = await supabase
         .from("posts")
         .select("*")
+        .eq("user_id", user.id)
         .eq("platform", "facebook")
         .order("published_at", { ascending: false });
       if (error) throw error;
@@ -47,6 +48,7 @@ export function useFacebookComments() {
       const { data: posts } = await supabase
         .from("posts")
         .select("id")
+        .eq("user_id", user.id)
         .eq("platform", "facebook");
       if (!posts || posts.length === 0) return [];
       const postIds = posts.map(p => p.id);
