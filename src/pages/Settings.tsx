@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Instagram,
+  Youtube,
   Check,
   Loader2,
   Wifi,
