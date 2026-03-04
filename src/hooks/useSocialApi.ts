@@ -132,11 +132,11 @@ export function useCommentsApi(postId?: string, platform?: SocialPlatform) {
   });
 }
 
-export function useSentimentStatsApi() {
+export function useSentimentStatsApi(platform?: SocialPlatform) {
   return useQuery({
-    queryKey: queryKeys.sentimentStats,
+    queryKey: [...queryKeys.sentimentStats, platform],
     queryFn: async () => {
-      const response = await socialApi.comments.getSentimentStats();
+      const response = await socialApi.comments.getSentimentStats(platform);
       return response.data;
     },
     staleTime: 5 * 60 * 1000,
