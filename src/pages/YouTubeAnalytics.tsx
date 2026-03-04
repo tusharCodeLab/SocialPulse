@@ -86,7 +86,7 @@ export default function YouTubeAnalytics() {
             <Youtube className="h-6 w-6 text-[#FF0000]" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">YouTube Analytics</h1>
+            <h1 className="text-2xl font-bold text-foreground">YouTube Overview</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
               Channel performance & video insights
             </p>
