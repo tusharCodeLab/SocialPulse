@@ -15,6 +15,10 @@ import Sentiment from "./pages/Sentiment";
 import Trends from "./pages/Trends";
 
 import YouTubeAnalytics from "./pages/YouTubeAnalytics";
+import YouTubePostsAnalysis from "./pages/YouTubePostsAnalysis";
+import YouTubeAudience from "./pages/YouTubeAudience";
+import YouTubeSentiment from "./pages/YouTubeSentiment";
+import YouTubeTrends from "./pages/YouTubeTrends";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -38,6 +42,10 @@ const App = () => (
               <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
               
               <Route path="/youtube-analytics" element={<ProtectedRoute><YouTubeAnalytics /></ProtectedRoute>} />
+              <Route path="/youtube-posts" element={<ProtectedRoute><YouTubePostsAnalysis /></ProtectedRoute>} />
+              <Route path="/youtube-audience" element={<ProtectedRoute><YouTubeAudience /></ProtectedRoute>} />
+              <Route path="/youtube-sentiment" element={<ProtectedRoute><YouTubeSentiment /></ProtectedRoute>} />
+              <Route path="/youtube-trends" element={<ProtectedRoute><YouTubeTrends /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

@@ -60,7 +60,11 @@ const platformGroups: PlatformGroup[] = [
     label: 'YouTube',
     color: 'text-[#FF0000]',
     items: [
-      { to: '/youtube-analytics', icon: Youtube, label: 'YouTube Analytics' },
+      { to: '/youtube-analytics', icon: LayoutDashboard, label: 'YouTube Overview' },
+      { to: '/youtube-posts', icon: FileText, label: 'Video Analysis' },
+      { to: '/youtube-audience', icon: Users, label: 'Audience Insights' },
+      { to: '/youtube-sentiment', icon: Heart, label: 'Sentiment' },
+      { to: '/youtube-trends', icon: Activity, label: 'Trend Intelligence' },
     ],
   },
 ];
