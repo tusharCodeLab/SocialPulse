@@ -131,6 +131,7 @@ serve(async (req) => {
     let instagramFollowersCount: number = 0;
     let instagramMediaCount: number = 0;
     let pageAccessToken: string | null = null;
+    const checkedPages: Array<{ id: string; name: string; hasInstagram: boolean }> = [];
 
     for (const page of pagesData.data) {
       await delay(500); // Delay between page checks to avoid rate limits
