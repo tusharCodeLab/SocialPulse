@@ -117,15 +117,15 @@ export function usePostStatsApi(platform?: SocialPlatform) {
 // ============================================================================
 // Comments Hooks
 // ============================================================================
-export function useCommentsApi(postId?: string) {
+export function useCommentsApi(postId?: string, platform?: SocialPlatform) {
   return useQuery({
-    queryKey: queryKeys.comments(postId),
+    queryKey: [...queryKeys.comments(postId), platform],
     queryFn: async () => {
       if (postId) {
         const response = await socialApi.comments.getByPostId(postId);
         return response.data;
       }
-      const response = await socialApi.comments.getAll();
+      const response = await socialApi.comments.getAll(platform);
       return response.data;
     },
     staleTime: 2 * 60 * 1000,
