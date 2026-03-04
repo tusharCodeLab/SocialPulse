@@ -270,12 +270,18 @@ export const commentsApi = {
     };
   },
 
-  async getAll(): Promise<APIResponse<Comment[]>> {
-    const { data: comments, error } = await supabase
+  async getAll(platform?: SocialPlatform): Promise<APIResponse<Comment[]>> {
+    let query = supabase
       .from('post_comments')
-      .select('*')
+      .select('*, posts!inner(platform)')
       .order('created_at', { ascending: false })
       .limit(100);
+
+    if (platform) {
+      query = query.eq('posts.platform', platform);
+    }
+
+    const { data: comments, error } = await query;
 
     if (error) throw error;
 
