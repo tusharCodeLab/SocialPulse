@@ -122,7 +122,7 @@ export default function Settings() {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              Connect your Instagram account to start analyzing your social media performance.
+              Connect your social media accounts to start analyzing performance.
             </motion.p>
           </div>
         </motion.div>
