@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import {
   Instagram,
   Youtube,
+  Facebook,
   Check,
   Loader2,
   Wifi,
@@ -21,6 +22,7 @@ import { Button } from '@/components/ui/button';
 const platforms = [
   { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-[#E4405F]', supported: true },
   { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-[#FF0000]', supported: true },
+  { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-[#1877F2]', supported: true },
 ];
 
 export default function Settings() {
@@ -39,6 +41,14 @@ export default function Settings() {
     videos: number;
     comments: number;
     title: string;
+  } | null>(null);
+
+  // Facebook state
+  const [isConnectingFacebook, setIsConnectingFacebook] = useState(false);
+  const [fbSyncResult, setFbSyncResult] = useState<{
+    posts: number;
+    comments: number;
+    pageName: string;
   } | null>(null);
 
   const { toast } = useToast();
@@ -102,12 +112,39 @@ export default function Settings() {
     }
   };
 
+  const handleConnectFacebook = async () => {
+    if (!user) {
+      toast({ title: 'Please sign in', description: 'You need to be signed in.', variant: 'destructive' });
+      return;
+    }
+    setIsConnectingFacebook(true);
+    setFbSyncResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-facebook');
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      setFbSyncResult({
+        posts: data.imported?.posts || 0,
+        comments: data.imported?.comments || 0,
+        pageName: data.page?.name || 'Facebook Page',
+      });
+      if (!connectedPlatforms.includes('facebook')) togglePlatform('facebook');
+      toast({ title: 'Facebook connected!', description: `Imported ${data.imported?.posts || 0} posts and ${data.imported?.comments || 0} comments from ${data.page?.name}` });
+    } catch (error) {
+      console.error('Facebook connection error:', error);
+      toast({ title: 'Connection failed', description: error instanceof Error ? error.message : 'Failed to connect Facebook', variant: 'destructive' });
+    } finally {
+      setIsConnectingFacebook(false);
+    }
+  };
+
   const handlePlatformClick = (platformId: string, supported: boolean) => {
     if (platformId === 'instagram' && supported) {
       handleConnectInstagram();
     } else if (platformId === 'youtube') {
-      // YouTube uses the form below, don't do anything on card click
       return;
+    } else if (platformId === 'facebook' && supported) {
+      handleConnectFacebook();
     } else if (!supported) {
       toast({ title: 'Coming soon', description: `${platformId.charAt(0).toUpperCase() + platformId.slice(1)} integration is coming soon!` });
     } else {
@@ -133,7 +170,7 @@ export default function Settings() {
           <div className="mt-4 space-y-3">
             {platforms.map((platform, index) => {
               const isConnected = connectedPlatforms.includes(platform.id);
-              const isLoading = (platform.id === 'instagram' && isConnectingInstagram) || (platform.id === 'youtube' && isConnectingYouTube);
+              const isLoading = (platform.id === 'instagram' && isConnectingInstagram) || (platform.id === 'youtube' && isConnectingYouTube) || (platform.id === 'facebook' && isConnectingFacebook);
 
               return (
                 <motion.div
@@ -216,6 +253,19 @@ export default function Settings() {
                 <div>
                   <p className="font-medium text-foreground">Successfully synced {ytSyncResult.title}</p>
                   <p className="text-sm text-muted-foreground">Imported {ytSyncResult.videos} videos and {ytSyncResult.comments} comments</p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Facebook sync result */}
+          {fbSyncResult && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4 p-4 rounded-lg bg-chart-sentiment-positive/10 border border-chart-sentiment-positive/20">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-full bg-chart-sentiment-positive/20"><Check className="h-5 w-5 text-chart-sentiment-positive" /></div>
+                <div>
+                  <p className="font-medium text-foreground">Successfully synced {fbSyncResult.pageName}</p>
+                  <p className="text-sm text-muted-foreground">Imported {fbSyncResult.posts} posts and {fbSyncResult.comments} comments</p>
                 </div>
               </div>
             </motion.div>

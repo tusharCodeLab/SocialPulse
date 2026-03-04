@@ -18,6 +18,7 @@ import {
   Youtube,
   Instagram,
   Plus,
+  Facebook,
 } from 'lucide-react';
 import { SidebarNavLink } from './SidebarNavLink';
 import { cn } from '@/lib/utils';
@@ -67,6 +68,17 @@ const platformGroups: PlatformGroup[] = [
       { to: '/youtube-trends', icon: Activity, label: 'Trend Intelligence' },
     ],
   },
+  {
+    key: 'facebook',
+    icon: Facebook,
+    label: 'Facebook',
+    color: 'text-[#1877F2]',
+    items: [
+      { to: '/facebook-analytics', icon: LayoutDashboard, label: 'Page Overview' },
+      { to: '/facebook-posts', icon: FileText, label: 'Posts Analysis' },
+      { to: '/facebook-audience', icon: Users, label: 'Audience' },
+    ],
+  },
 ];
 
 const aiToolsItems: NavItem[] = [];
@@ -77,7 +89,7 @@ const accountItems: NavItem[] = [
 
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const [expandedPlatforms, setExpandedPlatforms] = useState<Record<string, boolean>>({ instagram: true, youtube: true });
+  const [expandedPlatforms, setExpandedPlatforms] = useState<Record<string, boolean>>({ instagram: true, youtube: true, facebook: true });
   const { signOut, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
