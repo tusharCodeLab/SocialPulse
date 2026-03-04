@@ -43,6 +43,14 @@ export default function Settings() {
     title: string;
   } | null>(null);
 
+  // Facebook state
+  const [isConnectingFacebook, setIsConnectingFacebook] = useState(false);
+  const [fbSyncResult, setFbSyncResult] = useState<{
+    posts: number;
+    comments: number;
+    pageName: string;
+  } | null>(null);
+
   const { toast } = useToast();
   const { user } = useAuth();
 
