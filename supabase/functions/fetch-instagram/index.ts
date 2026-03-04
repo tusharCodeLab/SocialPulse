@@ -54,7 +54,7 @@ serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
 
     // Get user from auth header
     const authHeader = req.headers.get("Authorization");
@@ -65,8 +65,11 @@ serve(async (req) => {
       );
     }
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    // Use anon key client with user's token for ES256-compatible auth validation
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: userError } = await authClient.auth.getUser();
     
     if (userError || !user) {
       return new Response(
@@ -74,6 +77,9 @@ serve(async (req) => {
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Use service role client for DB operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     console.log(`Fetching Instagram data for user: ${user.id}`);
 
