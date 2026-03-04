@@ -443,7 +443,12 @@ export type Database = {
     }
     Enums: {
       sentiment_type: "positive" | "negative" | "neutral"
-      social_platform: "instagram" | "twitter" | "facebook" | "linkedin"
+      social_platform:
+        | "instagram"
+        | "twitter"
+        | "facebook"
+        | "linkedin"
+        | "youtube"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -572,7 +577,13 @@ export const Constants = {
   public: {
     Enums: {
       sentiment_type: ["positive", "negative", "neutral"],
-      social_platform: ["instagram", "twitter", "facebook", "linkedin"],
+      social_platform: [
+        "instagram",
+        "twitter",
+        "facebook",
+        "linkedin",
+        "youtube",
+      ],
     },
   },
 } as const
