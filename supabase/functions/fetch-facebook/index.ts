@@ -15,10 +15,10 @@ serve(async (req) => {
   }
 
   try {
-    const ACCESS_TOKEN = Deno.env.get("INSTAGRAM_ACCESS_TOKEN");
+    const ACCESS_TOKEN = Deno.env.get("FACEBOOK_ACCESS_TOKEN");
     if (!ACCESS_TOKEN) {
       return new Response(
-        JSON.stringify({ error: "Facebook access token not configured. Please set the INSTAGRAM_ACCESS_TOKEN secret (it works for both Instagram and Facebook)." }),
+        JSON.stringify({ error: "Facebook access token not configured. Please set the FACEBOOK_ACCESS_TOKEN secret." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
