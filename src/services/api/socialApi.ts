@@ -491,15 +491,21 @@ export const audienceApi = {
 // Analytics API
 // ============================================================================
 export const analyticsApi = {
-  async getEngagement(days: number = 30): Promise<APIResponse<EngagementAnalytics[]>> {
+  async getEngagement(days: number = 30, platform?: SocialPlatform): Promise<APIResponse<EngagementAnalytics[]>> {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const { data: posts, error } = await supabase
+    let query = supabase
       .from('posts')
       .select('published_at, likes_count, comments_count, shares_count, reach, impressions')
       .gte('published_at', startDate.toISOString())
       .order('published_at', { ascending: true });
+
+    if (platform) {
+      query = query.eq('platform', platform);
+    }
+
+    const { data: posts, error } = await query;
 
     if (error) throw error;
 
