@@ -109,29 +109,59 @@ serve(async (req) => {
 
     console.log(`[YouTube] Fetching data for handle: ${channelHandle}, user: ${user.id}`);
 
-    // Step 1: Resolve channel by handle
-    const handle = channelHandle.startsWith("@") ? channelHandle.slice(1) : channelHandle;
-    const channelRes = await fetch(
-      `${YT_API}/channels?part=snippet,statistics,contentDetails&forHandle=${handle}&key=${API_KEY}`
-    );
-    const channelJson = await channelRes.json();
+    // Step 1: Resolve channel from handle / channel ID / username / URL
+    const lookup = parseChannelInput(channelHandle);
+    let channelItems: any[] = [];
 
-    if (!channelJson.items || channelJson.items.length === 0) {
-      // Try by channel ID
-      const byIdRes = await fetch(
-        `${YT_API}/channels?part=snippet,statistics,contentDetails&id=${channelHandle}&key=${API_KEY}`
+    if (lookup.handle) {
+      const channelRes = await fetch(
+        `${YT_API}/channels?part=snippet,statistics,contentDetails&forHandle=${encodeURIComponent(lookup.handle)}&key=${API_KEY}`
       );
-      const byIdJson = await byIdRes.json();
-      if (!byIdJson.items || byIdJson.items.length === 0) {
-        return new Response(
-          JSON.stringify({ error: "YouTube channel not found. Try @handle or channel ID." }),
-          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      channelJson.items = byIdJson.items;
+      const channelJson = await channelRes.json();
+      channelItems = channelJson.items || [];
     }
 
-    const channel = channelJson.items[0];
+    if (channelItems.length === 0 && lookup.channelId) {
+      const byIdRes = await fetch(
+        `${YT_API}/channels?part=snippet,statistics,contentDetails&id=${encodeURIComponent(lookup.channelId)}&key=${API_KEY}`
+      );
+      const byIdJson = await byIdRes.json();
+      channelItems = byIdJson.items || [];
+    }
+
+    if (channelItems.length === 0 && lookup.username) {
+      const byUsernameRes = await fetch(
+        `${YT_API}/channels?part=snippet,statistics,contentDetails&forUsername=${encodeURIComponent(lookup.username)}&key=${API_KEY}`
+      );
+      const byUsernameJson = await byUsernameRes.json();
+      channelItems = byUsernameJson.items || [];
+    }
+
+    // Final fallback: channel search by query
+    if (channelItems.length === 0) {
+      const searchChannelRes = await fetch(
+        `${YT_API}/search?part=snippet&type=channel&maxResults=1&q=${encodeURIComponent(lookup.original)}&key=${API_KEY}`
+      );
+      const searchChannelJson = await searchChannelRes.json();
+      const searchedChannelId = searchChannelJson.items?.[0]?.snippet?.channelId;
+
+      if (searchedChannelId) {
+        const bySearchIdRes = await fetch(
+          `${YT_API}/channels?part=snippet,statistics,contentDetails&id=${encodeURIComponent(searchedChannelId)}&key=${API_KEY}`
+        );
+        const bySearchIdJson = await bySearchIdRes.json();
+        channelItems = bySearchIdJson.items || [];
+      }
+    }
+
+    if (channelItems.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "YouTube channel not found. Use @handle, channel ID (UC...), username, or a YouTube channel URL." }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const channel = channelItems[0];
     const channelId = channel.id;
     const snippet = channel.snippet;
     const stats = channel.statistics;
