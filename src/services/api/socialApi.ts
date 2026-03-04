@@ -194,7 +194,7 @@ export const postsApi = {
     };
   },
 
-  async getStats(): Promise<APIResponse<{
+  async getStats(platform?: SocialPlatform): Promise<APIResponse<{
     totalPosts: number;
     totalLikes: number;
     totalComments: number;
@@ -202,9 +202,15 @@ export const postsApi = {
     totalReach: number;
     avgEngagement: number;
   }>> {
-    const { data: posts, error } = await supabase
+    let query = supabase
       .from('posts')
       .select('likes_count, comments_count, shares_count, reach, engagement_rate');
+
+    if (platform) {
+      query = query.eq('platform', platform);
+    }
+
+    const { data: posts, error } = await query;
 
     if (error) throw error;
 
