@@ -163,10 +163,13 @@ serve(async (req) => {
     if (!instagramAccountId) {
       return new Response(
         JSON.stringify({ 
+          success: false,
+          reason: "instagram_not_connected",
           error: "No Instagram Business Account found",
-          hint: "Your Facebook Page must be connected to an Instagram Business or Creator account. Go to your Facebook Page settings to connect Instagram."
+          hint: "Your Facebook Page must be connected to an Instagram Business or Creator account. Go to your Facebook Page settings to connect Instagram.",
+          checked_pages: checkedPages,
         }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
