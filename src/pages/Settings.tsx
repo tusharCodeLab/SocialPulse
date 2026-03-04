@@ -170,7 +170,7 @@ export default function Settings() {
           <div className="mt-4 space-y-3">
             {platforms.map((platform, index) => {
               const isConnected = connectedPlatforms.includes(platform.id);
-              const isLoading = (platform.id === 'instagram' && isConnectingInstagram) || (platform.id === 'youtube' && isConnectingYouTube);
+              const isLoading = (platform.id === 'instagram' && isConnectingInstagram) || (platform.id === 'youtube' && isConnectingYouTube) || (platform.id === 'facebook' && isConnectingFacebook);
 
               return (
                 <motion.div
