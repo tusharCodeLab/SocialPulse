@@ -24,9 +24,9 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function AudienceInsights() {
   const { toast } = useToast();
-  const { data: growth, isLoading: loadingGrowth } = useAudienceGrowthApi(30);
+  const { data: growth, isLoading: loadingGrowth } = useAudienceGrowthApi(30, 'instagram');
   const { data: summary, isLoading: loadingSummary } = useAudienceSummaryApi();
-  const { data: bestTimes, isLoading: loadingTimes } = useBestPostingTimesApi();
+  const { data: bestTimes, isLoading: loadingTimes } = useBestPostingTimesApi('instagram');
   const calculateBestTimes = useCalculateBestTimes();
 
   const isLoading = loadingGrowth || loadingSummary || loadingTimes;

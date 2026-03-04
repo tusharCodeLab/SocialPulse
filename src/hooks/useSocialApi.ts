@@ -103,11 +103,11 @@ export function usePostApi(postId: string) {
   });
 }
 
-export function usePostStatsApi() {
+export function usePostStatsApi(platform?: SocialPlatform) {
   return useQuery({
-    queryKey: queryKeys.postStats,
+    queryKey: [...queryKeys.postStats, platform],
     queryFn: async () => {
-      const response = await socialApi.posts.getStats();
+      const response = await socialApi.posts.getStats(platform);
       return response.data;
     },
     staleTime: 2 * 60 * 1000,
@@ -117,26 +117,26 @@ export function usePostStatsApi() {
 // ============================================================================
 // Comments Hooks
 // ============================================================================
-export function useCommentsApi(postId?: string) {
+export function useCommentsApi(postId?: string, platform?: SocialPlatform) {
   return useQuery({
-    queryKey: queryKeys.comments(postId),
+    queryKey: [...queryKeys.comments(postId), platform],
     queryFn: async () => {
       if (postId) {
         const response = await socialApi.comments.getByPostId(postId);
         return response.data;
       }
-      const response = await socialApi.comments.getAll();
+      const response = await socialApi.comments.getAll(platform);
       return response.data;
     },
     staleTime: 2 * 60 * 1000,
   });
 }
 
-export function useSentimentStatsApi() {
+export function useSentimentStatsApi(platform?: SocialPlatform) {
   return useQuery({
-    queryKey: queryKeys.sentimentStats,
+    queryKey: [...queryKeys.sentimentStats, platform],
     queryFn: async () => {
-      const response = await socialApi.comments.getSentimentStats();
+      const response = await socialApi.comments.getSentimentStats(platform);
       return response.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -173,11 +173,11 @@ export function useDemographicsApi(accountId?: string) {
   });
 }
 
-export function useAudienceGrowthApi(days: number = 30) {
+export function useAudienceGrowthApi(days: number = 30, platform?: SocialPlatform) {
   return useQuery({
-    queryKey: queryKeys.audienceGrowth(days),
+    queryKey: [...queryKeys.audienceGrowth(days), platform],
     queryFn: async () => {
-      const response = await socialApi.audience.getGrowth(days);
+      const response = await socialApi.audience.getGrowth(days, platform);
       return response.data;
     },
     staleTime: 5 * 60 * 1000,
@@ -198,22 +198,22 @@ export function useAudienceSummaryApi() {
 // ============================================================================
 // Analytics Hooks
 // ============================================================================
-export function useEngagementAnalyticsApi(days: number = 30) {
+export function useEngagementAnalyticsApi(days: number = 30, platform?: SocialPlatform) {
   return useQuery({
-    queryKey: queryKeys.engagement(days),
+    queryKey: [...queryKeys.engagement(days), platform],
     queryFn: async () => {
-      const response = await socialApi.analytics.getEngagement(days);
+      const response = await socialApi.analytics.getEngagement(days, platform);
       return response.data;
     },
     staleTime: 5 * 60 * 1000,
   });
 }
 
-export function useSentimentTrendApi(days: number = 14) {
+export function useSentimentTrendApi(days: number = 14, platform?: SocialPlatform) {
   return useQuery({
-    queryKey: queryKeys.sentimentTrend(days),
+    queryKey: [...queryKeys.sentimentTrend(days), platform],
     queryFn: async () => {
-      const response = await socialApi.analytics.getSentiment(days);
+      const response = await socialApi.analytics.getSentiment(days, platform);
       return response.data;
     },
     staleTime: 5 * 60 * 1000,
