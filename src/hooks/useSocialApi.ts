@@ -103,11 +103,11 @@ export function usePostApi(postId: string) {
   });
 }
 
-export function usePostStatsApi() {
+export function usePostStatsApi(platform?: SocialPlatform) {
   return useQuery({
-    queryKey: queryKeys.postStats,
+    queryKey: [...queryKeys.postStats, platform],
     queryFn: async () => {
-      const response = await socialApi.posts.getStats();
+      const response = await socialApi.posts.getStats(platform);
       return response.data;
     },
     staleTime: 2 * 60 * 1000,
