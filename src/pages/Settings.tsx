@@ -76,7 +76,7 @@ export default function Settings() {
       return;
     }
     if (!ytHandle.trim()) {
-      toast({ title: 'Enter a channel handle', description: 'E.g. @MrBeast or a channel ID', variant: 'destructive' });
+      toast({ title: 'Enter a channel identifier', description: 'Use @handle, channel ID (UC...), username, or a YouTube channel URL.', variant: 'destructive' });
       return;
     }
     setIsConnectingYouTube(true);
@@ -179,7 +179,7 @@ export default function Settings() {
                   {platform.id === 'youtube' && (
                     <div className="mt-4 flex gap-2" onClick={(e) => e.stopPropagation()}>
                       <Input
-                        placeholder="@YourChannel or Channel ID"
+                        placeholder="@YourChannel, UC..., username, or YouTube URL"
                         value={ytHandle}
                         onChange={(e) => setYtHandle(e.target.value)}
                         className="flex-1"

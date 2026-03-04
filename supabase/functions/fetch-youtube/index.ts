@@ -9,6 +9,58 @@ const corsHeaders = {
 
 const YT_API = "https://www.googleapis.com/youtube/v3";
 
+type ChannelLookup = {
+  handle?: string;
+  channelId?: string;
+  username?: string;
+  original: string;
+};
+
+const parseChannelInput = (rawInput: string): ChannelLookup => {
+  const raw = rawInput.trim();
+  const out: ChannelLookup = { original: raw };
+
+  // Accept full YouTube URLs
+  try {
+    const url = new URL(raw);
+    if (url.hostname.includes("youtube.com") || url.hostname.includes("youtu.be")) {
+      const path = url.pathname.replace(/\/$/, "");
+
+      if (path.startsWith("/@")) {
+        out.handle = path.slice(2);
+      } else if (path.startsWith("/channel/")) {
+        out.channelId = path.split("/")[2];
+      } else if (path.startsWith("/user/")) {
+        out.username = path.split("/")[2];
+      } else if (path.startsWith("/c/")) {
+        out.username = path.split("/")[2];
+      }
+
+      const queryChannelId = url.searchParams.get("channel_id");
+      if (!out.channelId && queryChannelId) out.channelId = queryChannelId;
+    }
+  } catch {
+    // Not a URL, continue with raw parsing
+  }
+
+  // Raw handle
+  if (!out.handle && raw.startsWith("@")) {
+    out.handle = raw.slice(1);
+  }
+
+  // Raw channel ID
+  if (!out.channelId && /^UC[a-zA-Z0-9_-]{20,}$/.test(raw)) {
+    out.channelId = raw;
+  }
+
+  // Fallback plain username/custom URL
+  if (!out.username && !out.handle && !out.channelId) {
+    out.username = raw;
+  }
+
+  return out;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -57,29 +109,59 @@ serve(async (req) => {
 
     console.log(`[YouTube] Fetching data for handle: ${channelHandle}, user: ${user.id}`);
 
-    // Step 1: Resolve channel by handle
-    const handle = channelHandle.startsWith("@") ? channelHandle.slice(1) : channelHandle;
-    const channelRes = await fetch(
-      `${YT_API}/channels?part=snippet,statistics,contentDetails&forHandle=${handle}&key=${API_KEY}`
-    );
-    const channelJson = await channelRes.json();
+    // Step 1: Resolve channel from handle / channel ID / username / URL
+    const lookup = parseChannelInput(channelHandle);
+    let channelItems: any[] = [];
 
-    if (!channelJson.items || channelJson.items.length === 0) {
-      // Try by channel ID
-      const byIdRes = await fetch(
-        `${YT_API}/channels?part=snippet,statistics,contentDetails&id=${channelHandle}&key=${API_KEY}`
+    if (lookup.handle) {
+      const channelRes = await fetch(
+        `${YT_API}/channels?part=snippet,statistics,contentDetails&forHandle=${encodeURIComponent(lookup.handle)}&key=${API_KEY}`
       );
-      const byIdJson = await byIdRes.json();
-      if (!byIdJson.items || byIdJson.items.length === 0) {
-        return new Response(
-          JSON.stringify({ error: "YouTube channel not found. Try @handle or channel ID." }),
-          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      channelJson.items = byIdJson.items;
+      const channelJson = await channelRes.json();
+      channelItems = channelJson.items || [];
     }
 
-    const channel = channelJson.items[0];
+    if (channelItems.length === 0 && lookup.channelId) {
+      const byIdRes = await fetch(
+        `${YT_API}/channels?part=snippet,statistics,contentDetails&id=${encodeURIComponent(lookup.channelId)}&key=${API_KEY}`
+      );
+      const byIdJson = await byIdRes.json();
+      channelItems = byIdJson.items || [];
+    }
+
+    if (channelItems.length === 0 && lookup.username) {
+      const byUsernameRes = await fetch(
+        `${YT_API}/channels?part=snippet,statistics,contentDetails&forUsername=${encodeURIComponent(lookup.username)}&key=${API_KEY}`
+      );
+      const byUsernameJson = await byUsernameRes.json();
+      channelItems = byUsernameJson.items || [];
+    }
+
+    // Final fallback: channel search by query
+    if (channelItems.length === 0) {
+      const searchChannelRes = await fetch(
+        `${YT_API}/search?part=snippet&type=channel&maxResults=1&q=${encodeURIComponent(lookup.original)}&key=${API_KEY}`
+      );
+      const searchChannelJson = await searchChannelRes.json();
+      const searchedChannelId = searchChannelJson.items?.[0]?.snippet?.channelId;
+
+      if (searchedChannelId) {
+        const bySearchIdRes = await fetch(
+          `${YT_API}/channels?part=snippet,statistics,contentDetails&id=${encodeURIComponent(searchedChannelId)}&key=${API_KEY}`
+        );
+        const bySearchIdJson = await bySearchIdRes.json();
+        channelItems = bySearchIdJson.items || [];
+      }
+    }
+
+    if (channelItems.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "YouTube channel not found. Use @handle, channel ID (UC...), username, or a YouTube channel URL." }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const channel = channelItems[0];
     const channelId = channel.id;
     const snippet = channel.snippet;
     const stats = channel.statistics;
@@ -94,7 +176,13 @@ serve(async (req) => {
           user_id: user.id,
           platform: "youtube",
           account_name: snippet.title,
-          account_handle: `@${snippet.customUrl || handle}`,
+          account_handle: snippet.customUrl
+            ? snippet.customUrl.startsWith("@")
+              ? snippet.customUrl
+              : `@${snippet.customUrl}`
+            : lookup.handle
+              ? `@${lookup.handle}`
+              : lookup.channelId || null,
           profile_image_url: snippet.thumbnails?.default?.url || null,
           followers_count: parseInt(stats.subscriberCount || "0"),
           is_connected: true,
@@ -225,7 +313,13 @@ serve(async (req) => {
         success: true,
         channel: {
           title: snippet.title,
-          handle: snippet.customUrl || handle,
+          handle: snippet.customUrl
+            ? snippet.customUrl.startsWith("@")
+              ? snippet.customUrl
+              : `@${snippet.customUrl}`
+            : lookup.handle
+              ? `@${lookup.handle}`
+              : lookup.channelId || lookup.original,
           subscriberCount: parseInt(stats.subscriberCount || "0"),
           viewCount: parseInt(stats.viewCount || "0"),
           videoCount: parseInt(stats.videoCount || "0"),
