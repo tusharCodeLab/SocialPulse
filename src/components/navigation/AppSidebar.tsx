@@ -230,12 +230,8 @@ export function AppSidebar() {
           />
         </SidebarSection>
 
-        {/* AI INTELLIGENCE TOOLS */}
-        <SidebarSection label="AI Intelligence Tools" collapsed={collapsed}>
-          {aiToolsItems.map(item => (
-            <SidebarNavLink key={item.to} to={item.to} icon={item.icon} label={item.label} collapsed={collapsed} />
-          ))}
-        </SidebarSection>
+
+
 
         {/* ACCOUNT */}
         <SidebarSection label="Account" collapsed={collapsed}>
