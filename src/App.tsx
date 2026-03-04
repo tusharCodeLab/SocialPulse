@@ -13,7 +13,7 @@ import PostsAnalysis from "./pages/PostsAnalysis";
 import AudienceInsights from "./pages/AudienceInsights";
 import Sentiment from "./pages/Sentiment";
 import Trends from "./pages/Trends";
-import ContentCalendar from "./pages/ContentCalendar";
+
 import YouTubeAnalytics from "./pages/YouTubeAnalytics";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
