@@ -388,6 +388,7 @@ serve(async (req) => {
         imported: {
           posts: postsToUpsert.length,
           comments: totalComments,
+          deletedStalePosts: deletedPostsCount,
           hasInsights,
         },
       }),
