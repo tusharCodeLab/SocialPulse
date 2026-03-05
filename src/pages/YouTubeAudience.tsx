@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Youtube, Users, UserPlus, TrendingUp, Percent } from 'lucide-react';
-import { DashboardLayout } from '@/components/DashboardLayout';
+
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { ChartCard } from '@/components/dashboard/ChartCard';
 import { Badge } from '@/components/ui/badge';
