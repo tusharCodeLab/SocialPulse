@@ -47,7 +47,7 @@ export function usePlatformComparison() {
         const [postsRes, accountsRes] = await Promise.all([
           supabase
             .from('posts')
-            .select('reach, impressions, engagement_rate')
+            .select('reach, impressions, engagement_rate, likes_count, comments_count')
             .eq('user_id', user.id)
             .eq('platform', platform),
           supabase
@@ -60,7 +60,10 @@ export function usePlatformComparison() {
         ]);
 
         const posts = postsRes.data || [];
-        const totalReach = posts.reduce((sum, p) => sum + (p.reach || 0), 0);
+        const rawReach = posts.reduce((sum, p) => sum + (p.reach || 0), 0);
+        const totalInteractions = posts.reduce((sum, p) => sum + (p.likes_count || 0) + (p.comments_count || 0), 0);
+        // Smart fallback: use interactions when reach is 0
+        const totalReach = rawReach > 0 ? rawReach : totalInteractions;
         const totalImpressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);
         const avgEngagement = posts.length
           ? posts.reduce((sum, p) => sum + (Number(p.engagement_rate) || 0), 0) / posts.length
@@ -92,7 +95,7 @@ export function useReachTrends() {
 
       const { data: posts } = await supabase
         .from('posts')
-        .select('platform, reach, published_at')
+        .select('platform, reach, published_at, likes_count, comments_count')
         .eq('user_id', user.id)
         .not('published_at', 'is', null)
         .order('published_at', { ascending: true });
@@ -107,8 +110,10 @@ export function useReachTrends() {
           grouped[date] = { date, instagram: 0, youtube: 0, facebook: 0 };
         }
         const platform = post.platform as Platform;
+        // Smart fallback: use interactions when reach is 0
+        const value = (post.reach || 0) > 0 ? post.reach! : (post.likes_count || 0) + (post.comments_count || 0);
         if (platform in grouped[date]) {
-          grouped[date][platform] += post.reach || 0;
+          grouped[date][platform] += value;
         }
       }
 
