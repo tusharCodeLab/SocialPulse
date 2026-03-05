@@ -33,9 +33,9 @@ import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
 
 /* ── Constants ── */
 const PLATFORM_CONFIG = {
-  instagram: { icon: Instagram, color: '#E4405F', label: 'Instagram', border: 'border-l-[#E4405F]' },
-  youtube: { icon: Youtube, color: '#FF0000', label: 'YouTube', border: 'border-l-[#FF0000]' },
-  facebook: { icon: Facebook, color: '#1877F2', label: 'Facebook', border: 'border-l-[#1877F2]' },
+  instagram: { icon: InstagramIcon, color: '#E4405F', label: 'Instagram', border: 'border-l-[#E4405F]' },
+  youtube: { icon: YouTubeIcon, color: '#FF0000', label: 'YouTube', border: 'border-l-[#FF0000]' },
+  facebook: { icon: FacebookIcon, color: '#1877F2', label: 'Facebook', border: 'border-l-[#1877F2]' },
 };
 
 /* ── Reach Chart Tooltip ── */
