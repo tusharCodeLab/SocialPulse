@@ -300,7 +300,7 @@ export default function ContentCalendar() {
                 <div className="flex-1 space-y-2">
                   <AnimatePresence>
                     {dayItems.map((item) => {
-                      const PlatformIcon = platformIcons[item.platform] || Instagram;
+                      const PlatformIcon = platformIcons[item.platform] || InstagramIcon;
                       const TypeIcon = contentTypeIcons[item.content_type] || MessageSquare;
                       const colorClass = contentTypeColors[item.content_type] || contentTypeColors.post;
 
