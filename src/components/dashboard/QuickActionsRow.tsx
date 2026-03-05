@@ -59,10 +59,10 @@ export function QuickActionsRow() {
       preview: null,
       onClick: async () => {
         try {
-          await analyzeSentiment.mutateAsync();
+          await analyzeSentiment.mutateAsync(undefined);
           setSentimentResult(true);
           toast({ title: 'Sentiment analyzed', description: 'All comments have been analyzed.' });
-        } catch { toast({ title: 'Failed', variant: 'destructive' }); }
+        } catch { toast({ title: 'Failed', description: 'Could not analyze sentiment.', variant: 'destructive' }); }
       },
     },
   ];
