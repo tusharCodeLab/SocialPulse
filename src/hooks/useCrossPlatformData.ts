@@ -107,8 +107,7 @@ export function useReachTrends() {
           grouped[date] = { date, instagram: 0, youtube: 0, facebook: 0 };
         }
         const platform = post.platform as Platform;
-        // Smart fallback: use interactions when reach is 0
-        const value = (post.reach || 0) > 0 ? post.reach! : (post.likes_count || 0) + (post.comments_count || 0);
+        const value = post.reach || 0;
         if (platform in grouped[date]) {
           grouped[date][platform] += value;
         }
