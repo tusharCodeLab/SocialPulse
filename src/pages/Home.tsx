@@ -192,7 +192,7 @@ const Home = () => {
                 transition={{ delay: 1.1 + i * 0.1 }}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card/50 border border-border/50"
               >
-                <p.icon className={`w-5 h-5 ${p.color}`} />
+                <p.icon className="w-5 h-5" />
                 <span className="text-sm font-medium text-foreground">{p.name}</span>
               </motion.div>
             ))}
