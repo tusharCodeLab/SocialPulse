@@ -8,7 +8,7 @@ import {
   Wand2, Sparkles, Hash, Lightbulb, Target, Zap, ChevronRight, Brain,
   Image, Video, Layers, Type, PenTool, Copy, Check, Star,
 } from 'lucide-react';
-import { DashboardLayout } from '@/components/DashboardLayout';
+
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { ChartCard } from '@/components/dashboard/ChartCard';
 import { PlatformBadge } from '@/components/dashboard/PlatformBadge';
