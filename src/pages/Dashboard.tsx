@@ -9,7 +9,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
 } from 'recharts';
-import { DashboardLayout } from '@/components/DashboardLayout';
+
 import { Button } from '@/components/ui/button';
 import { PremiumSkeleton } from '@/components/ui/premium-skeleton';
 import { useAuth } from '@/contexts/AuthContext';
