@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Instagram, Youtube, Facebook, Check, Loader2, Wifi, WifiOff, TrendingUp,
+  Check, Loader2, Wifi, WifiOff, TrendingUp,
   User, Database, Bell, LogOut, Shield, Clock, Download, Trash2, Mail,
 } from 'lucide-react';
+import { InstagramIcon, YouTubeIcon, FacebookIcon } from '@/components/icons/PlatformIcons';
 
 import { ChartCard } from '@/components/dashboard/ChartCard';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -19,9 +20,9 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 
 const platforms = [
-  { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-[#E4405F]', supported: true },
-  { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-[#FF0000]', supported: true },
-  { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-[#1877F2]', supported: true },
+  { id: 'instagram', name: 'Instagram', icon: InstagramIcon, color: '', supported: true },
+  { id: 'youtube', name: 'YouTube', icon: YouTubeIcon, color: '', supported: true },
+  { id: 'facebook', name: 'Facebook', icon: FacebookIcon, color: '', supported: true },
 ];
 
 export default function Settings() {

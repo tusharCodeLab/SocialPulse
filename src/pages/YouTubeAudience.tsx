@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Youtube, Users, UserPlus, TrendingUp, Percent, Eye } from 'lucide-react';
+import { Users, UserPlus, TrendingUp, Percent, Eye } from 'lucide-react';
+import { YouTubeIcon } from '@/components/icons/PlatformIcons';
 
 import { EnhancedMetricCard } from '@/components/dashboard/EnhancedMetricCard';
 import { ChartCard } from '@/components/dashboard/ChartCard';
@@ -24,7 +25,7 @@ function formatNum(n: number) {
 
 const emptyState = (
   <div className="flex flex-col items-center justify-center h-full gap-2 text-center py-8">
-    <Youtube className="h-8 w-8 text-muted-foreground/40" />
+    <YouTubeIcon className="h-8 w-8 text-muted-foreground/40" />
     <p className="text-sm text-muted-foreground">Connect your YouTube channel to see audience data</p>
     <p className="text-xs text-muted-foreground/60">Go to Settings → Connect YouTube</p>
   </div>
@@ -76,7 +77,7 @@ export default function YouTubeAudience() {
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-lg bg-[#FF0000]/10"><Users className="h-5 w-5 text-[#FF0000]" /></div>
             <h1 className="text-3xl font-bold text-foreground">Audience Insights</h1>
-            <Badge variant="outline" className="text-xs border-[#FF0000]/30 text-[#FF0000] gap-1"><Youtube className="h-3 w-3" /> YouTube</Badge>
+            <Badge variant="outline" className="text-xs border-[#FF0000]/30 text-[#FF0000] gap-1"><YouTubeIcon className="h-3 w-3" /> YouTube</Badge>
           </div>
           <p className="text-muted-foreground">Track your subscriber growth, demographics, and traffic sources.</p>
         </motion.div>

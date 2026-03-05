@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Youtube, Eye, ThumbsUp, MessageCircle, Users,
+  Eye, ThumbsUp, MessageCircle, Users,
   TrendingUp, PlayCircle, BarChart3, Activity, Film,
 } from 'lucide-react';
+import { YouTubeIcon } from '@/components/icons/PlatformIcons';
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -65,7 +66,7 @@ export default function YouTubeAnalytics() {
 
   const emptyChartMessage = (
     <div className="flex flex-col items-center justify-center h-full gap-2 text-center py-8">
-      <Youtube className="h-8 w-8 text-muted-foreground/40" />
+      <YouTubeIcon className="h-8 w-8 text-muted-foreground/40" />
       <p className="text-sm text-muted-foreground">Connect your YouTube channel to see analytics</p>
       <p className="text-xs text-muted-foreground/60">Go to Settings → Connect YouTube</p>
     </div>
@@ -75,7 +76,7 @@ export default function YouTubeAnalytics() {
     <>
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-[#FF0000]/10"><Youtube className="h-6 w-6 text-[#FF0000]" /></div>
+          <div className="p-2.5 rounded-xl bg-[#FF0000]/10"><YouTubeIcon className="h-6 w-6" /></div>
           <div>
             <h1 className="text-2xl font-bold text-foreground">YouTube Overview</h1>
             <p className="text-xs text-muted-foreground mt-0.5">

@@ -2,8 +2,9 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   Eye, ThumbsUp, MessageCircle, Users, Share2,
-  TrendingUp, BarChart3, Activity, FileText, Facebook,
+  TrendingUp, BarChart3, Activity, FileText,
 } from 'lucide-react';
+import { FacebookIcon } from '@/components/icons/PlatformIcons';
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -68,7 +69,7 @@ export default function FacebookAnalytics() {
 
   const emptyChartMessage = (
     <div className="flex flex-col items-center justify-center h-full gap-2 text-center py-8">
-      <Facebook className="h-8 w-8 text-muted-foreground/40" />
+      <FacebookIcon className="h-8 w-8 text-muted-foreground/40" />
       <p className="text-sm text-muted-foreground">Connect your Facebook Page to see analytics</p>
       <p className="text-xs text-muted-foreground/60">Go to Settings → Connect Facebook</p>
     </div>
@@ -78,7 +79,7 @@ export default function FacebookAnalytics() {
     <>
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-[#1877F2]/10"><Facebook className="h-6 w-6 text-[#1877F2]" /></div>
+          <div className="p-2.5 rounded-xl bg-[#1877F2]/10"><FacebookIcon className="h-6 w-6" /></div>
           <div>
             <h1 className="text-2xl font-bold text-foreground">Facebook Page Overview</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -87,7 +88,7 @@ export default function FacebookAnalytics() {
           </div>
         </div>
         <Badge variant="outline" className="gap-1.5 text-xs border-[#1877F2]/30 text-[#1877F2]">
-          <Facebook className="h-3 w-3" /> Facebook
+          <FacebookIcon className="h-3 w-3" /> Facebook
         </Badge>
       </motion.div>
 

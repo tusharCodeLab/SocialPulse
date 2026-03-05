@@ -9,9 +9,6 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Instagram,
-  Twitter,
-  Facebook,
   Linkedin,
   Loader2,
   Wand2,
@@ -22,6 +19,7 @@ import {
   Video,
   Zap,
 } from "lucide-react";
+import { InstagramIcon, FacebookIcon } from "@/components/icons/PlatformIcons";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -42,9 +40,9 @@ import {
 } from "@/components/ui/dialog";
 
 const platformIcons: Record<string, any> = {
-  instagram: Instagram,
-  twitter: Twitter,
-  facebook: Facebook,
+  instagram: InstagramIcon,
+  twitter: Linkedin, // placeholder
+  facebook: FacebookIcon,
   linkedin: Linkedin,
 };
 
@@ -302,7 +300,7 @@ export default function ContentCalendar() {
                 <div className="flex-1 space-y-2">
                   <AnimatePresence>
                     {dayItems.map((item) => {
-                      const PlatformIcon = platformIcons[item.platform] || Instagram;
+                      const PlatformIcon = platformIcons[item.platform] || InstagramIcon;
                       const TypeIcon = contentTypeIcons[item.content_type] || MessageSquare;
                       const colorClass = contentTypeColors[item.content_type] || contentTypeColors.post;
 
@@ -420,7 +418,7 @@ export default function ContentCalendar() {
       <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
         <DialogContent className="max-w-lg">
           {selectedItem && (() => {
-            const PlatformIcon = platformIcons[selectedItem.platform] || Instagram;
+            const PlatformIcon = platformIcons[selectedItem.platform] || InstagramIcon;
             const TypeIcon = contentTypeIcons[selectedItem.content_type] || MessageSquare;
             return (
               <>

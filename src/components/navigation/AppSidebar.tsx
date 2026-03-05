@@ -15,11 +15,9 @@ import {
   TrendingUp,
   LogOut,
   Zap,
-  Youtube,
-  Instagram,
   Plus,
-  Facebook,
 } from 'lucide-react';
+import { InstagramIcon, YouTubeIcon, FacebookIcon } from '@/components/icons/PlatformIcons';
 import { SidebarNavLink } from './SidebarNavLink';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,7 +30,7 @@ interface NavItem {
 
 interface PlatformGroup {
   key: string;
-  icon: typeof Instagram;
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   color: string;
   items: NavItem[];
@@ -45,9 +43,9 @@ const overviewItems: NavItem[] = [
 const platformGroups: PlatformGroup[] = [
   {
     key: 'instagram',
-    icon: Instagram,
+    icon: InstagramIcon,
     label: 'Instagram',
-    color: 'text-[#E4405F]',
+    color: '',
     items: [
       { to: '/instagram-overview', icon: LayoutDashboard, label: 'Instagram Overview' },
       { to: '/posts', icon: FileText, label: 'Posts Analysis' },
@@ -58,9 +56,9 @@ const platformGroups: PlatformGroup[] = [
   },
   {
     key: 'youtube',
-    icon: Youtube,
+    icon: YouTubeIcon,
     label: 'YouTube',
-    color: 'text-[#FF0000]',
+    color: '',
     items: [
       { to: '/youtube-analytics', icon: LayoutDashboard, label: 'YouTube Overview' },
       { to: '/youtube-posts', icon: FileText, label: 'Posts Analysis' },
@@ -71,9 +69,9 @@ const platformGroups: PlatformGroup[] = [
   },
   {
     key: 'facebook',
-    icon: Facebook,
+    icon: FacebookIcon,
     label: 'Facebook',
-    color: 'text-[#1877F2]',
+    color: '',
     items: [
       { to: '/facebook-analytics', icon: LayoutDashboard, label: 'Page Overview' },
       { to: '/facebook-posts', icon: FileText, label: 'Posts Analysis' },

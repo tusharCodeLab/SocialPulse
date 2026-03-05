@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Instagram, Eye, ThumbsUp, MessageCircle, Users,
+  Eye, ThumbsUp, MessageCircle, Users,
   TrendingUp, BarChart3, Activity, FileText, Image,
 } from 'lucide-react';
+import { InstagramIcon } from '@/components/icons/PlatformIcons';
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -80,7 +81,7 @@ export default function InstagramOverview() {
 
   const emptyChartMessage = (
     <div className="flex flex-col items-center justify-center h-full gap-2 text-center py-8">
-      <Instagram className="h-8 w-8 text-muted-foreground/40" />
+      <InstagramIcon className="h-8 w-8 text-muted-foreground/40" />
       <p className="text-sm text-muted-foreground">Connect your Instagram account to see analytics</p>
       <p className="text-xs text-muted-foreground/60">Go to Settings → Connect Instagram</p>
     </div>
@@ -90,7 +91,7 @@ export default function InstagramOverview() {
     <>
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-[#E4405F]/10"><Instagram className="h-6 w-6 text-[#E4405F]" /></div>
+          <div className="p-2.5 rounded-xl bg-[#E4405F]/10"><InstagramIcon className="h-6 w-6" /></div>
           <div>
             <h1 className="text-2xl font-bold text-foreground">Instagram Overview</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -99,7 +100,7 @@ export default function InstagramOverview() {
           </div>
         </div>
         <Badge variant="outline" className="gap-1.5 text-xs border-[#E4405F]/30 text-[#E4405F]">
-          <Instagram className="h-3 w-3" /> Instagram
+          <InstagramIcon className="h-3 w-3" /> Instagram
         </Badge>
       </motion.div>
 

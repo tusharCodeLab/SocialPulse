@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Twitter, Instagram, Facebook, Linkedin, Video, Youtube } from 'lucide-react';
+import { Twitter, Linkedin, Video } from 'lucide-react';
+import { InstagramIcon, YouTubeIcon, FacebookIcon } from '@/components/icons/PlatformIcons';
 import { cn } from '@/lib/utils';
 
 type Platform = 'twitter' | 'instagram' | 'facebook' | 'linkedin' | 'tiktok' | 'youtube';
@@ -10,13 +11,13 @@ interface PlatformBadgeProps {
   showLabel?: boolean;
 }
 
-const platformConfig: Record<Platform, { icon: typeof Twitter; label: string; color: string }> = {
+const platformConfig: Record<Platform, { icon: React.ComponentType<{ className?: string }>; label: string; color: string }> = {
   twitter: { icon: Twitter, label: 'Twitter', color: 'bg-[#1DA1F2]/10 text-[#1DA1F2]' },
-  instagram: { icon: Instagram, label: 'Instagram', color: 'bg-[#E4405F]/10 text-[#E4405F]' },
-  facebook: { icon: Facebook, label: 'Facebook', color: 'bg-[#1877F2]/10 text-[#1877F2]' },
+  instagram: { icon: InstagramIcon, label: 'Instagram', color: 'bg-[#E4405F]/10 text-[#E4405F]' },
+  facebook: { icon: FacebookIcon, label: 'Facebook', color: 'bg-[#1877F2]/10 text-[#1877F2]' },
   linkedin: { icon: Linkedin, label: 'LinkedIn', color: 'bg-[#0A66C2]/10 text-[#0A66C2]' },
   tiktok: { icon: Video, label: 'TikTok', color: 'bg-[#000000]/10 text-foreground' },
-  youtube: { icon: Youtube, label: 'YouTube', color: 'bg-[#FF0000]/10 text-[#FF0000]' },
+  youtube: { icon: YouTubeIcon, label: 'YouTube', color: 'bg-[#FF0000]/10 text-[#FF0000]' },
 };
 
 const sizeConfig = {

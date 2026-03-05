@@ -11,13 +11,11 @@ import {
   MessageSquare,
   Shield,
   Clock,
-  Instagram,
-  Youtube,
-  Facebook,
   Users,
   Zap,
   CheckCircle2,
 } from "lucide-react";
+import { InstagramIcon, YouTubeIcon, FacebookIcon } from "@/components/icons/PlatformIcons";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 
 const features = [
@@ -183,9 +181,9 @@ const Home = () => {
           >
             <span className="text-xs text-muted-foreground uppercase tracking-widest">Supported Platforms</span>
             {[
-              { icon: Instagram, color: "text-[#E4405F]", name: "Instagram" },
-              { icon: Youtube, color: "text-[#FF0000]", name: "YouTube" },
-              { icon: Facebook, color: "text-[#1877F2]", name: "Facebook" },
+              { icon: InstagramIcon, name: "Instagram" },
+              { icon: YouTubeIcon, name: "YouTube" },
+              { icon: FacebookIcon, name: "Facebook" },
             ].map((p, i) => (
               <motion.div
                 key={p.name}
@@ -194,7 +192,7 @@ const Home = () => {
                 transition={{ delay: 1.1 + i * 0.1 }}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-card/50 border border-border/50"
               >
-                <p.icon className={`w-5 h-5 ${p.color}`} />
+                <p.icon className="w-5 h-5" />
                 <span className="text-sm font-medium text-foreground">{p.name}</span>
               </motion.div>
             ))}

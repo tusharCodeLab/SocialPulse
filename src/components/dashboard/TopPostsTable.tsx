@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Trophy, Heart, MessageCircle, Eye, Instagram, Youtube, Facebook } from 'lucide-react';
+import { Trophy, Heart, MessageCircle, Eye } from 'lucide-react';
+import { InstagramIcon, YouTubeIcon, FacebookIcon } from '@/components/icons/PlatformIcons';
 import { cn } from '@/lib/utils';
 
 interface TopPost {
@@ -15,9 +16,9 @@ interface TopPost {
 }
 
 const PLATFORM_ICONS: Record<string, any> = {
-  instagram: Instagram,
-  youtube: Youtube,
-  facebook: Facebook,
+  instagram: InstagramIcon,
+  youtube: YouTubeIcon,
+  facebook: FacebookIcon,
 };
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -57,7 +58,7 @@ export function TopPostsTable({ posts }: { posts: TopPost[] }) {
         {posts.length > 0 ? (
           <div className="space-y-2">
             {posts.map((post, i) => {
-              const PIcon = PLATFORM_ICONS[post.platform] || Instagram;
+              const PIcon = PLATFORM_ICONS[post.platform] || InstagramIcon;
               const pColor = PLATFORM_COLORS[post.platform] || '#888';
               const barWidth = (post.reach / maxReach) * 100;
 
