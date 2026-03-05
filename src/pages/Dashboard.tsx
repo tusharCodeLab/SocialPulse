@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import {
   Users, Heart, Eye, FileText, Sparkles, RefreshCw,
   TrendingUp, Loader2, Activity, AlertTriangle, Target,
-  Smile, Instagram, Youtube, Facebook,
+  Instagram, Youtube, Facebook, MessageCircle, BarChart3,
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -23,6 +23,7 @@ import { useAIPerformanceDigest, PerformanceDigest } from '@/hooks/useAIFeatures
 import { usePlatformComparison, useReachTrends } from '@/hooks/useCrossPlatformData';
 import { cn } from '@/lib/utils';
 
+/* ── Constants ── */
 const SENTIMENT_COLORS = {
   positive: 'hsl(142, 71%, 45%)',
   negative: 'hsl(0, 72%, 51%)',
@@ -30,20 +31,22 @@ const SENTIMENT_COLORS = {
 };
 
 const PLATFORM_CONFIG = {
-  instagram: { icon: Instagram, color: '#E4405F', label: 'Instagram', gradient: 'from-[#E4405F]/15 to-[#E4405F]/5' },
-  youtube: { icon: Youtube, color: '#FF0000', label: 'YouTube', gradient: 'from-[#FF0000]/15 to-[#FF0000]/5' },
-  facebook: { icon: Facebook, color: '#1877F2', label: 'Facebook', gradient: 'from-[#1877F2]/15 to-[#1877F2]/5' },
+  instagram: { icon: Instagram, color: '#E4405F', label: 'Instagram', border: 'border-l-[#E4405F]' },
+  youtube: { icon: Youtube, color: '#FF0000', label: 'YouTube', border: 'border-l-[#FF0000]' },
+  facebook: { icon: Facebook, color: '#1877F2', label: 'Facebook', border: 'border-l-[#1877F2]' },
 };
 
-function MiniStat({ label, value, icon: Icon }: { label: string; value: string; icon: any }) {
+/* ── Sub-components ── */
+
+function MetricPill({ label, value, icon: Icon }: { label: string; value: string; icon: any }) {
   return (
-    <div className="flex items-center gap-2.5 p-3 rounded-lg bg-muted/30 border border-border/50">
-      <div className="p-1.5 rounded-md bg-primary/10">
-        <Icon className="h-3.5 w-3.5 text-primary" />
+    <div className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-card border border-border/60" style={{ boxShadow: 'var(--shadow-card)' }}>
+      <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
+        <Icon className="h-4 w-4 text-primary" />
       </div>
-      <div className="min-w-0">
-        <p className="text-lg font-bold text-foreground leading-tight">{value}</p>
-        <p className="text-[10px] text-muted-foreground">{label}</p>
+      <div>
+        <p className="text-xl font-bold text-foreground leading-none tracking-tight">{value}</p>
+        <p className="text-[11px] text-muted-foreground mt-0.5">{label}</p>
       </div>
     </div>
   );
@@ -53,29 +56,48 @@ function PlatformCard({ platform, metrics }: { platform: 'instagram' | 'youtube'
   const config = PLATFORM_CONFIG[platform];
   const Icon = config.icon;
 
+  const stats = [
+    { label: 'Likes', value: metrics.totalLikes, icon: Heart },
+    { label: 'Comments', value: metrics.totalComments, icon: MessageCircle },
+    { label: 'Engagement', value: `${metrics.avgEngagementRate}%`, icon: BarChart3 },
+    { label: 'Followers', value: metrics.followers, icon: Users },
+  ];
+
   return (
-    <div className={cn('rounded-xl border border-border bg-card p-4')} style={{ boxShadow: 'var(--shadow-card)' }}>
-      <div className="flex items-center gap-2.5 mb-3">
-        <div className={cn('p-2 rounded-lg bg-gradient-to-br', config.gradient)}>
-          <Icon className="h-4 w-4" style={{ color: config.color }} />
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold text-foreground">{config.label}</h3>
-          <p className="text-[10px] text-muted-foreground">{metrics.postsCount} posts</p>
-        </div>
+    <div className={cn('rounded-xl border border-border bg-card border-l-4 relative overflow-hidden', config.border)} style={{ boxShadow: 'var(--shadow-card)' }}>
+      {/* Post count badge */}
+      <div className="absolute top-3 right-3">
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-muted/60 text-muted-foreground border border-border/50">
+          {metrics.postsCount} posts
+        </span>
       </div>
-      <div className="grid grid-cols-2 gap-2">
-        <div className="p-2 rounded-md bg-muted/30 text-center">
-          <p className="text-sm font-bold text-foreground">{metrics.totalReach >= 1000 ? `${(metrics.totalReach / 1000).toFixed(1)}K` : metrics.totalReach}</p>
-          <p className="text-[10px] text-muted-foreground">Reach</p>
+
+      <div className="p-4">
+        {/* Platform header */}
+        <div className="flex items-center gap-2.5 mb-3">
+          <div className="p-2 rounded-lg" style={{ backgroundColor: `${config.color}15` }}>
+            <Icon className="h-4 w-4" style={{ color: config.color }} />
+          </div>
+          <h3 className="text-sm font-bold text-foreground">{config.label}</h3>
         </div>
-        <div className="p-2 rounded-md bg-muted/30 text-center">
-          <p className="text-sm font-bold text-foreground">{metrics.followers >= 1000 ? `${(metrics.followers / 1000).toFixed(1)}K` : metrics.followers}</p>
-          <p className="text-[10px] text-muted-foreground">Followers</p>
-        </div>
-        <div className="p-2 rounded-md bg-muted/30 text-center col-span-2">
-          <p className="text-sm font-bold text-foreground">{metrics.avgEngagementRate}%</p>
-          <p className="text-[10px] text-muted-foreground">Engagement Rate</p>
+
+        {/* Stats grid */}
+        <div className="grid grid-cols-2 gap-2">
+          {stats.map((s) => {
+            const SIcon = s.icon;
+            const formatted = typeof s.value === 'number'
+              ? s.value >= 1000 ? `${(s.value / 1000).toFixed(1)}K` : s.value.toString()
+              : s.value;
+            return (
+              <div key={s.label} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
+                <SIcon className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-foreground leading-tight">{formatted}</p>
+                  <p className="text-[9px] text-muted-foreground">{s.label}</p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -98,14 +120,14 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   );
 };
 
+/* ── Main Dashboard ── */
+
 export default function Dashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: summary, isLoading } = useDashboardSummaryApi();
-  const { data: postStats } = usePostStatsApi();
-  const { data: audience } = useAudienceSummaryApi();
   const { data: sentiment } = useSentimentStatsApi();
   const { data: platformMetrics } = usePlatformComparison();
   const { data: reachTrends } = useReachTrends();
@@ -137,11 +159,16 @@ export default function Dashboard() {
     return acc;
   }, {} as Record<string, any>);
 
+  // Compute avg engagement across platforms
+  const avgEngagement = platformMetrics?.length
+    ? (platformMetrics.reduce((s, p) => s + p.avgEngagementRate, 0) / platformMetrics.length).toFixed(1)
+    : '0';
+
   if (isLoading) {
     return (
       <>
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
-          {[...Array(5)].map((_, i) => <PremiumSkeleton key={i} variant="metric" />)}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          {[...Array(4)].map((_, i) => <PremiumSkeleton key={i} variant="metric" />)}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <PremiumSkeleton variant="chart" className="lg:col-span-2" />
@@ -153,30 +180,32 @@ export default function Dashboard() {
 
   return (
     <>
-      {/* Header with sentiment donut */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-5">
+      {/* ── Header ── */}
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
             Welcome, <span className="gradient-text">{user?.email?.split('@')[0] || 'Analyst'}</span>
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Your social media analytics at a glance</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Your cross-platform analytics overview</p>
         </div>
         <div className="flex items-center gap-4">
-          {/* Compact sentiment donut */}
+          {/* Larger sentiment display */}
           {sentiment && sentiment.total > 0 && (
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 relative">
+            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-card border border-border/60">
+              <div className="w-12 h-12 relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={12} outerRadius={18} paddingAngle={3} dataKey="value">
+                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={14} outerRadius={22} paddingAngle={3} dataKey="value">
                       {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                     </Pie>
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="hidden md:block">
-                <p className="text-[10px] font-semibold text-foreground">Sentiment</p>
-                <p className="text-[9px] text-muted-foreground">{Math.round((sentiment.positive / sentiment.total) * 100)}% positive</p>
+              <div>
+                <p className="text-xs font-semibold text-foreground">Overall Sentiment</p>
+                <p className="text-[10px] text-chart-sentiment-positive font-medium">
+                  {Math.round((sentiment.positive / sentiment.total) * 100)}% Positive
+                </p>
               </div>
             </div>
           )}
@@ -192,26 +221,25 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      {/* Top Metrics Row */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-5">
-        <MiniStat label="Followers" value={summary?.totalFollowers.toLocaleString() || '0'} icon={Users} />
-        <MiniStat label="Engagement" value={summary?.totalEngagement.toLocaleString() || '0'} icon={Heart} />
-        <MiniStat label="Reach" value={summary?.totalReach >= 1000 ? `${(summary.totalReach / 1000).toFixed(1)}K` : summary?.totalReach?.toString() || '0'} icon={Eye} />
-        <MiniStat label="Posts" value={summary?.totalPosts.toString() || '0'} icon={FileText} />
-        <MiniStat label="Positive" value={`${Math.round(summary?.positiveSentimentPercent || 0)}%`} icon={Smile} />
+      {/* ── Metric Pills ── */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+        <MetricPill label="Total Followers" value={summary?.totalFollowers.toLocaleString() || '0'} icon={Users} />
+        <MetricPill label="Total Engagement" value={summary?.totalEngagement.toLocaleString() || '0'} icon={Heart} />
+        <MetricPill label="Total Reach" value={summary?.totalReach >= 1000 ? `${(summary.totalReach / 1000).toFixed(1)}K` : summary?.totalReach?.toString() || '0'} icon={Eye} />
+        <MetricPill label="Avg Engagement" value={`${avgEngagement}%`} icon={BarChart3} />
       </motion.div>
 
-      {/* Combined Reach Chart + Platform Cards */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
-        {/* Combined User Reach — Area Chart */}
-        <div className="lg:col-span-2 rounded-xl border border-border bg-card p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
+      {/* ── Main Grid: Chart + Platform Cards ── */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
+        {/* Reach Chart — spans 3 cols */}
+        <div className="lg:col-span-3 rounded-xl border border-border bg-card p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
                 <TrendingUp className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-foreground">Reach Trends</h3>
+                <h3 className="text-sm font-bold text-foreground">Combined User Reach</h3>
                 <p className="text-[10px] text-muted-foreground">Reach across all platforms over time</p>
               </div>
             </div>
@@ -224,7 +252,7 @@ export default function Dashboard() {
               ))}
             </div>
           </div>
-          <div className="h-[280px]">
+          <div className="h-[350px]">
             {reachTrends && reachTrends.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={reachTrends} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
@@ -259,19 +287,19 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Platform Summary Cards */}
-        <div className="space-y-4">
+        {/* Platform Cards — spans 2 cols */}
+        <div className="lg:col-span-2 space-y-4">
           {(['instagram', 'youtube', 'facebook'] as const).map(p => (
             <PlatformCard
               key={p}
               platform={p}
-              metrics={platformMap[p] || { totalReach: 0, totalImpressions: 0, postsCount: 0, avgEngagementRate: 0, followers: 0 }}
+              metrics={platformMap[p] || { totalReach: 0, totalImpressions: 0, postsCount: 0, avgEngagementRate: 0, followers: 0, totalLikes: 0, totalComments: 0 }}
             />
           ))}
         </div>
       </motion.div>
 
-      {/* AI Performance Digest */}
+      {/* ── AI Performance Digest ── */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}

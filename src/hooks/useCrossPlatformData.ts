@@ -11,6 +11,8 @@ interface PlatformMetrics {
   postsCount: number;
   avgEngagementRate: number;
   followers: number;
+  totalLikes: number;
+  totalComments: number;
 }
 
 interface ReachTrendPoint {
@@ -62,6 +64,8 @@ export function usePlatformComparison() {
         const posts = postsRes.data || [];
         const totalReach = posts.reduce((sum, p) => sum + (p.reach || 0), 0);
         const totalImpressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);
+        const totalLikes = posts.reduce((sum, p) => sum + (p.likes_count || 0), 0);
+        const totalComments = posts.reduce((sum, p) => sum + (p.comments_count || 0), 0);
         const avgEngagement = posts.length
           ? posts.reduce((sum, p) => sum + (Number(p.engagement_rate) || 0), 0) / posts.length
           : 0;
@@ -73,6 +77,8 @@ export function usePlatformComparison() {
           postsCount: posts.length,
           avgEngagementRate: Math.round(avgEngagement * 100) / 100,
           followers: accountsRes.data?.followers_count || 0,
+          totalLikes,
+          totalComments,
         });
       }
 
