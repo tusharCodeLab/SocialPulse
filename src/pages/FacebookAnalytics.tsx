@@ -88,7 +88,7 @@ export default function FacebookAnalytics() {
           </div>
         </div>
         <Badge variant="outline" className="gap-1.5 text-xs border-[#1877F2]/30 text-[#1877F2]">
-          <Facebook className="h-3 w-3" /> Facebook
+          <FacebookIcon className="h-3 w-3" /> Facebook
         </Badge>
       </motion.div>
 
