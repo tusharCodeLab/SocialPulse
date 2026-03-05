@@ -87,9 +87,10 @@ const Auth = () => {
     const newErrors: { email?: string; password?: string } = {};
     const emailResult = emailSchema.safeParse(email);
     if (!emailResult.success) newErrors.email = emailResult.error.errors[0].message;
-    const passwordResult = passwordSchema.safeParse(password);
-    if (!passwordResult.success) newErrors.password = passwordResult.error.errors[0].message;
-    else if (isSignUp && !isStrongPassword(password)) {
+    if (isSignUp) {
+      const passwordResult = passwordSchema.safeParse(password);
+      if (!passwordResult.success) newErrors.password = passwordResult.error.errors[0].message;
+      else if (!isStrongPassword(password)) {
       newErrors.password = "Password must meet all requirements above";
     }
     setErrors(newErrors);
