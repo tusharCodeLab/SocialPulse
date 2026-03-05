@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Users, TrendingUp, Facebook } from 'lucide-react';
-import { DashboardLayout } from '@/components/DashboardLayout';
+
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useFacebookAccount } from '@/hooks/useFacebookData';
