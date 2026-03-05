@@ -53,7 +53,7 @@ const App = () => (
               <Route path="/facebook-analytics" element={<ProtectedRoute><FacebookAnalytics /></ProtectedRoute>} />
               <Route path="/facebook-posts" element={<ProtectedRoute><FacebookPosts /></ProtectedRoute>} />
               <Route path="/facebook-audience" element={<ProtectedRoute><FacebookAudience /></ProtectedRoute>} />
-              <Route path="/cross-platform" element={<ProtectedRoute><CrossPlatformAnalytics /></ProtectedRoute>} />
+              
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
