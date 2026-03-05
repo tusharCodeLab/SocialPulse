@@ -11,6 +11,8 @@ interface PlatformMetrics {
   postsCount: number;
   avgEngagementRate: number;
   followers: number;
+  totalLikes: number;
+  totalComments: number;
 }
 
 interface ReachTrendPoint {
