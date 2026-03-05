@@ -11,11 +11,12 @@ import {
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { usePosts } from '@/hooks/usePosts';
 import { useSocialAccounts } from '@/hooks/useSocialAccounts';
 import { useCommentsApi } from '@/hooks/useSocialApi';
-import { format } from 'date-fns';
+import { format, subDays, isAfter } from 'date-fns';
 
 const tooltipStyle = {
   backgroundColor: 'hsl(222, 47%, 10%)',
@@ -48,6 +49,7 @@ function formatNum(n: number) {
 
 export default function InstagramOverview() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [viewsTimeframe, setViewsTimeframe] = useState('all');
   const { data: accounts = [] } = useSocialAccounts();
   const igAccount = accounts.find(a => a.platform === 'instagram');
   const { data: posts = [] } = usePosts('instagram');
@@ -69,11 +71,20 @@ export default function InstagramOverview() {
       .sort((a, b) => new Date(a.published_at!).getTime() - new Date(b.published_at!).getTime())
       .map(v => ({
         date: format(new Date(v.published_at!), 'MMM d'),
+        publishedAt: new Date(v.published_at!),
         likes: v.likes_count || 0,
         comments: v.comments_count || 0,
         reach: v.reach || 0,
+        views: v.impressions || 0,
       }));
   }, [posts]);
+
+  const filteredViewsTrend = useMemo(() => {
+    if (viewsTimeframe === 'all') return postsTrend;
+    const daysMap: Record<string, number> = { '7d': 7, '14d': 14, '30d': 30, '90d': 90 };
+    const cutoff = subDays(new Date(), daysMap[viewsTimeframe] || 30);
+    return postsTrend.filter(p => isAfter(p.publishedAt, cutoff));
+  }, [postsTrend, viewsTimeframe]);
 
   const emptyChartMessage = (
     <div className="flex flex-col items-center justify-center h-full gap-2 text-center py-8">
