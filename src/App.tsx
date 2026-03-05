@@ -10,6 +10,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import InstagramOverview from "./pages/InstagramOverview";
 import PostsAnalysis from "./pages/PostsAnalysis";
 import AudienceInsights from "./pages/AudienceInsights";
 import Sentiment from "./pages/Sentiment";
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/instagram-overview" element={<InstagramOverview />} />
                 <Route path="/posts" element={<PostsAnalysis />} />
                 <Route path="/audience" element={<AudienceInsights />} />
                 <Route path="/sentiment" element={<Sentiment />} />
