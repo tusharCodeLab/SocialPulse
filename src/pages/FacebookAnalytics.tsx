@@ -79,7 +79,7 @@ export default function FacebookAnalytics() {
     <>
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-xl bg-[#1877F2]/10"><Facebook className="h-6 w-6 text-[#1877F2]" /></div>
+          <div className="p-2.5 rounded-xl bg-[#1877F2]/10"><FacebookIcon className="h-6 w-6" /></div>
           <div>
             <h1 className="text-2xl font-bold text-foreground">Facebook Page Overview</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
