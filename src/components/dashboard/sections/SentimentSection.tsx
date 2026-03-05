@@ -45,7 +45,7 @@ export function SentimentSection() {
 
   const handleAnalyze = async () => {
     try {
-      const result = await analyzeSentiment.mutateAsync();
+      const result = await analyzeSentiment.mutateAsync(undefined);
       await Promise.all([refetchStats(), refetchComments()]);
       toast({
         title: 'Analysis complete!',
