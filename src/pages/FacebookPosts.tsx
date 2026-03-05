@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { ThumbsUp, MessageCircle, Share2, Facebook, Image as ImageIcon } from 'lucide-react';
-import { DashboardLayout } from '@/components/DashboardLayout';
+
 import { Badge } from '@/components/ui/badge';
 import { useFacebookPosts } from '@/hooks/useFacebookData';
 import { format } from 'date-fns';
