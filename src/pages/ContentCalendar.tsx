@@ -9,9 +9,6 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Instagram,
-  Twitter,
-  Facebook,
   Linkedin,
   Loader2,
   Wand2,
@@ -22,6 +19,7 @@ import {
   Video,
   Zap,
 } from "lucide-react";
+import { InstagramIcon, FacebookIcon } from "@/components/icons/PlatformIcons";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
