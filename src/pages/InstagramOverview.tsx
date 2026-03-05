@@ -11,11 +11,12 @@ import {
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { usePosts } from '@/hooks/usePosts';
 import { useSocialAccounts } from '@/hooks/useSocialAccounts';
 import { useCommentsApi } from '@/hooks/useSocialApi';
-import { format } from 'date-fns';
+import { format, subDays, isAfter } from 'date-fns';
 
 const tooltipStyle = {
   backgroundColor: 'hsl(222, 47%, 10%)',
@@ -48,6 +49,7 @@ function formatNum(n: number) {
 
 export default function InstagramOverview() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [viewsTimeframe, setViewsTimeframe] = useState('all');
   const { data: accounts = [] } = useSocialAccounts();
   const igAccount = accounts.find(a => a.platform === 'instagram');
   const { data: posts = [] } = usePosts('instagram');
@@ -69,11 +71,20 @@ export default function InstagramOverview() {
       .sort((a, b) => new Date(a.published_at!).getTime() - new Date(b.published_at!).getTime())
       .map(v => ({
         date: format(new Date(v.published_at!), 'MMM d'),
+        publishedAt: new Date(v.published_at!),
         likes: v.likes_count || 0,
         comments: v.comments_count || 0,
         reach: v.reach || 0,
+        views: v.impressions || 0,
       }));
   }, [posts]);
+
+  const filteredViewsTrend = useMemo(() => {
+    if (viewsTimeframe === 'all') return postsTrend;
+    const daysMap: Record<string, number> = { '7d': 7, '14d': 14, '30d': 30, '90d': 90 };
+    const cutoff = subDays(new Date(), daysMap[viewsTimeframe] || 30);
+    return postsTrend.filter(p => isAfter(p.publishedAt, cutoff));
+  }, [postsTrend, viewsTimeframe]);
 
   const emptyChartMessage = (
     <div className="flex flex-col items-center justify-center h-full gap-2 text-center py-8">
@@ -119,17 +130,34 @@ export default function InstagramOverview() {
         <TabsContent value="overview">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="rounded-xl border border-border bg-card p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
-              <div className="flex items-center gap-2 mb-1"><Eye className="h-4 w-4 text-[#E4405F]" /><h3 className="text-sm font-semibold text-foreground">Reach per Post</h3></div>
-              <p className="text-[10px] text-muted-foreground mb-4">Reach for each published post</p>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-[#E4405F]" />
+                  <h3 className="text-sm font-semibold text-foreground">Views</h3>
+                </div>
+                <Select value={viewsTimeframe} onValueChange={setViewsTimeframe}>
+                  <SelectTrigger className="w-[120px] h-7 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7d">Last 7 days</SelectItem>
+                    <SelectItem value="14d">Last 14 days</SelectItem>
+                    <SelectItem value="30d">Last 30 days</SelectItem>
+                    <SelectItem value="90d">Last 90 days</SelectItem>
+                    <SelectItem value="all">All time</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-[10px] text-muted-foreground mb-4">Impressions per post over time</p>
               <div className="h-[220px]">
-                {hasData ? (
+                {filteredViewsTrend.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={postsTrend}>
+                    <AreaChart data={filteredViewsTrend}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(222,30%,15%)" />
                       <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="hsl(215,20%,50%)" />
                       <YAxis tick={{ fontSize: 10 }} stroke="hsl(215,20%,50%)" />
                       <Tooltip contentStyle={tooltipStyle} />
-                      <Area type="monotone" dataKey="reach" stroke="hsl(340,82%,52%)" fill="hsl(340,82%,52%)" fillOpacity={0.15} />
+                      <Area type="monotone" dataKey="views" stroke="hsl(340,82%,52%)" fill="hsl(340,82%,52%)" fillOpacity={0.15} name="Views" />
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : emptyChartMessage}
