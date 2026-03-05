@@ -631,12 +631,14 @@ export const analyticsApi = {
     avgEngagementRate: number;
     positiveSentimentPercent: number;
   }>> {
-    // Get posts stats
-    const { data: posts } = await supabase
-      .from('posts')
-      .select('likes_count, comments_count, shares_count, reach, engagement_rate');
+    // Get posts stats and accounts in parallel
+    const [{ data: posts }, { data: accounts }] = await Promise.all([
+      supabase.from('posts').select('likes_count, comments_count, shares_count, reach, engagement_rate'),
+      supabase.from('social_accounts').select('followers_count'),
+    ]);
 
     const postList = posts || [];
+    const totalFollowers = (accounts || []).reduce((sum, a) => sum + (a.followers_count || 0), 0);
     const totalEngagement = postList.reduce((sum, p) => 
       sum + (p.likes_count || 0) + (p.comments_count || 0) + (p.shares_count || 0), 0);
     const rawReach = postList.reduce((sum, p) => sum + (p.reach || 0), 0);
@@ -646,18 +648,9 @@ export const analyticsApi = {
       ? (() => {
           const storedRate = postList.reduce((sum, p) => sum + Number(p.engagement_rate || 0), 0) / postList.length;
           if (storedRate > 0) return storedRate;
-          // Fallback: calculate from interactions
-          const totalFollowersForRate = (accounts || []).reduce((sum, a) => sum + (a.followers_count || 0), 0);
-          return totalFollowersForRate > 0 ? (totalEngagement / totalFollowersForRate) * 100 : 0;
+          return totalFollowers > 0 ? (totalEngagement / totalFollowers) * 100 : 0;
         })()
       : 0;
-
-    // Get followers from social accounts (fetch before reach calc uses it)
-    const { data: accounts } = await supabase
-      .from('social_accounts')
-      .select('followers_count');
-
-    const totalFollowers = (accounts || []).reduce((sum, a) => sum + (a.followers_count || 0), 0);
 
     // Get sentiment stats
     const { data: comments } = await supabase
