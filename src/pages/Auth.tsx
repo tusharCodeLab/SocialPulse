@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { LineChart, ArrowLeft, Mail, Lock, User, Loader2, Users, TrendingUp, Shield, Sparkles } from "lucide-react";
 import { z } from "zod";
-import { AnimatedCounter } from "@/components/ui/animated-counter";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
