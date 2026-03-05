@@ -69,7 +69,7 @@ export default function FacebookAnalytics() {
 
   const emptyChartMessage = (
     <div className="flex flex-col items-center justify-center h-full gap-2 text-center py-8">
-      <Facebook className="h-8 w-8 text-muted-foreground/40" />
+      <FacebookIcon className="h-8 w-8 text-muted-foreground/40" />
       <p className="text-sm text-muted-foreground">Connect your Facebook Page to see analytics</p>
       <p className="text-xs text-muted-foreground/60">Go to Settings → Connect Facebook</p>
     </div>
