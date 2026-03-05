@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import {
   Youtube, Eye, ThumbsUp, MessageCircle, Clock, Film,
 } from 'lucide-react';
-import { DashboardLayout } from '@/components/DashboardLayout';
+
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { ChartCard } from '@/components/dashboard/ChartCard';
 import { Badge } from '@/components/ui/badge';
