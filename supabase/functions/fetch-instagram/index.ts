@@ -263,6 +263,44 @@ serve(async (req) => {
       }
     }
 
+    // Step 5b: Clean up stale posts that no longer exist on Instagram
+    const currentExternalIds = mediaData.map((m) => m.id);
+    const { data: existingPosts } = await supabase
+      .from("posts")
+      .select("id, external_post_id")
+      .eq("user_id", user.id)
+      .eq("platform", "instagram");
+
+    let deletedPostsCount = 0;
+    if (existingPosts && currentExternalIds.length > 0) {
+      const stalePostIds = existingPosts
+        .filter((p) => p.external_post_id && !currentExternalIds.includes(p.external_post_id))
+        .map((p) => p.id);
+
+      if (stalePostIds.length > 0) {
+        // Delete comments for stale posts first
+        const { error: commentsDelErr } = await supabase
+          .from("post_comments")
+          .delete()
+          .eq("user_id", user.id)
+          .in("post_id", stalePostIds);
+        if (commentsDelErr) console.error("Error deleting stale comments:", commentsDelErr);
+
+        // Delete stale posts
+        const { error: postsDelErr } = await supabase
+          .from("posts")
+          .delete()
+          .eq("user_id", user.id)
+          .in("id", stalePostIds);
+        if (postsDelErr) {
+          console.error("Error deleting stale posts:", postsDelErr);
+        } else {
+          deletedPostsCount = stalePostIds.length;
+          console.log(`Deleted ${deletedPostsCount} stale Instagram posts`);
+        }
+      }
+    }
+
     // Step 6: Fetch comments for each post
     let totalComments = 0;
     for (const media of mediaData.slice(0, 5)) { // Reduced from 10 to 5 to avoid rate limits
@@ -350,6 +388,7 @@ serve(async (req) => {
         imported: {
           posts: postsToUpsert.length,
           comments: totalComments,
+          deletedStalePosts: deletedPostsCount,
           hasInsights,
         },
       }),
