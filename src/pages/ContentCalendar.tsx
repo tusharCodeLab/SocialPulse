@@ -22,7 +22,7 @@ import {
   Video,
   Zap,
 } from "lucide-react";
-import { DashboardLayout } from "@/components/DashboardLayout";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
