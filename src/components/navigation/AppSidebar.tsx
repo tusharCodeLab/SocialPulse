@@ -30,7 +30,7 @@ interface NavItem {
 
 interface PlatformGroup {
   key: string;
-  icon: typeof Instagram;
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   color: string;
   items: NavItem[];
