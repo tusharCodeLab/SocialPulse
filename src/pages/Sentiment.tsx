@@ -5,7 +5,7 @@ import {
 import {
   Smile, Frown, Meh, MessageCircle, Sparkles, Loader2, Shield, AlertTriangle, Clock,
 } from 'lucide-react';
-import { DashboardLayout } from '@/components/DashboardLayout';
+
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { ChartCard } from '@/components/dashboard/ChartCard';
 import { SentimentBadge } from '@/components/dashboard/SentimentBadge';
