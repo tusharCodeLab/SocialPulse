@@ -418,7 +418,7 @@ export default function ContentCalendar() {
       <Dialog open={!!selectedItem} onOpenChange={() => setSelectedItem(null)}>
         <DialogContent className="max-w-lg">
           {selectedItem && (() => {
-            const PlatformIcon = platformIcons[selectedItem.platform] || Instagram;
+            const PlatformIcon = platformIcons[selectedItem.platform] || InstagramIcon;
             const TypeIcon = contentTypeIcons[selectedItem.content_type] || MessageSquare;
             return (
               <>
