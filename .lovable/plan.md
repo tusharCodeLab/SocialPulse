@@ -1,60 +1,76 @@
 
 
-## Redesign Dashboard with Cross-Platform Reach Chart + Platform Cards
+# Sidebar Restructure and Cleanup
 
-### What changes
+## What Changes
 
-The Dashboard page gets redesigned to match the reference layout: a large "Combined User Reach" area chart as the centerpiece with platform-specific summary cards stacked on the right. The separate Cross-Platform Analytics page and route get removed.
+### 1. Remove Non-Working Features
+- **Remove the Reports page** (`/reports` route, `Reports.tsx`) -- it's a "Coming Soon" placeholder with no functionality
+- **Remove the Reports entry** from the sidebar navigation
 
-### Layout (reference-inspired)
+### 2. Reorganize Sidebar into Grouped Sections
+Instead of a flat list of 7 items, organize into logical groups with section labels:
 
 ```text
-┌─────────────────────────────────────────────────────────┐
-│ Welcome, {user}                    Overall Sentiment 🍩 │
-│ Your social media analytics...                          │
-├─────────────────────────────────────────────────────────┤
-│ [Followers] [Engagement] [Reach] [Posts] [Positive%]    │
-├─────────────────────────────────────────────────────────┤
-│                                │ Instagram Reach Overview│
-│  Combined User Reach           │  Likes | Comments      │
-│  (Area chart with 3 lines)     │  Engagement | Views    │
-│  Instagram / YouTube / FB      ├────────────────────────┤
-│                                │ YouTube Channel Stats   │
-│  Last 30 Days                  │  Subscribers | Views    │
-│                                │  Retention              │
-│                                ├────────────────────────┤
-│                                │ Facebook Page Growth    │
-│                                │  Page Likes | Reach     │
-│                                │  Link Clicks            │
-├────────────────────────────────┴────────────────────────┤
-│ AI Performance Digest (existing, kept as-is)            │
-└─────────────────────────────────────────────────────────┘
++-------------------------------+
+|  [Logo] Analytics             |
+|          Social Dashboard     |
++-------------------------------+
+|  [AI-Powered badge]           |
++-------------------------------+
+|                               |
+|  OVERVIEW                     |
+|    Dashboard                  |
+|                               |
+|  ANALYTICS                    |
+|    Posts Analysis              |
+|    Audience Insights           |
+|    Sentiment                   |
+|                               |
+|  AI & TOOLS                   |
+|    AI Tools                    |
+|                               |
+|  ACCOUNT                      |
+|    Settings                    |
+|                               |
++-------------------------------+
+|  [User info]                  |
+|  [Sign Out]                   |
+|  [Collapse]                   |
++-------------------------------+
 ```
 
-### Implementation
+### 3. Files to Modify
+- **`src/components/navigation/AppSidebar.tsx`** -- Replace flat `navItems` array with grouped sections; add section labels that hide when collapsed
+- **`src/App.tsx`** -- Remove the `/reports` route
+- **`src/pages/Reports.tsx`** -- Delete this file
 
-**1. Update `src/pages/Dashboard.tsx`**
-- Import the cross-platform hooks (`usePlatformComparison`, `useReachTrends`) from `useCrossPlatformData.ts`
-- Replace the current 3-column grid (Posts/Sentiment/AI columns) with a 2-column layout:
-  - **Left (~65%)**: "Combined User Reach" AreaChart using Recharts with 3 filled lines (Instagram pink, YouTube red, Facebook blue), time range label, and legend
-  - **Right (~35%)**: Stack of 3 platform summary cards, each showing key metrics (reach, likes, comments, engagement, followers) with platform brand colors and icons
-- Keep the top metrics row and AI Performance Digest as they are
-- Move sentiment donut to the header row (top-right, compact) like the reference
-- Remove the old 3-column grid (Posts/Audience/Sentiment/Best Times/AI Insights/Spam/Trends columns) — these are all accessible from their dedicated platform sub-pages
+### 4. Files Unchanged
+- `SidebarNavLink.tsx` -- Works as-is, no changes needed
+- `DashboardLayout.tsx` -- No changes needed
+- All other pages remain intact
 
-**2. Remove Cross-Platform page**
-- Remove route from `src/App.tsx` (line 56)
-- Remove import (line 25)
-- Remove nav item from `src/components/navigation/AppSidebar.tsx` (line 43)
-- Keep `src/hooks/useCrossPlatformData.ts` (Dashboard will use these hooks)
-- Delete `src/pages/CrossPlatformAnalytics.tsx`
+## Technical Details
 
-**3. Keep `src/hooks/useCrossPlatformData.ts`** — the Dashboard will import and use these hooks directly for the combined reach chart and platform cards.
+**AppSidebar.tsx changes:**
+- Replace the single `navItems` array with a grouped structure:
+  ```ts
+  const navGroups = [
+    { label: 'Overview', items: [{ to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' }] },
+    { label: 'Analytics', items: [
+      { to: '/posts', icon: FileText, label: 'Posts Analysis' },
+      { to: '/audience', icon: Users, label: 'Audience Insights' },
+      { to: '/sentiment', icon: Heart, label: 'Sentiment' },
+    ]},
+    { label: 'AI & Tools', items: [{ to: '/ai-tools', icon: Brain, label: 'AI Tools' }] },
+    { label: 'Account', items: [{ to: '/settings', icon: Settings, label: 'Settings' }] },
+  ];
+  ```
+- Render each group with a small uppercase label (hidden when sidebar is collapsed) and its nav items below
+- Remove `BarChart3` import (was for Reports)
 
-### What stays
-- Welcome header, top metrics row, AI Performance Digest — all kept
-- Sentiment donut moves to header area (compact, like reference)
+**App.tsx changes:**
+- Remove `import Reports` and the `/reports` route
 
-### What gets removed from Dashboard
-- The old 3-column grid with Posts/Audience/Sentiment/Best Times/AI Insights/Spam/Trends cards — all this data is available on dedicated sub-pages, no need to duplicate on the main dashboard
-
+**Reports.tsx:**
+- Delete the file entirely

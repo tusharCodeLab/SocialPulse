@@ -40,7 +40,6 @@ interface PlatformGroup {
 
 const overviewItems: NavItem[] = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/cross-platform', icon: Activity, label: 'Cross-Platform' },
 ];
 
 const platformGroups: PlatformGroup[] = [
