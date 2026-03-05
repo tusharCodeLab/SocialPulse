@@ -23,6 +23,8 @@ import YouTubeTrends from "./pages/YouTubeTrends";
 import FacebookAnalytics from "./pages/FacebookAnalytics";
 import FacebookPosts from "./pages/FacebookPosts";
 import FacebookAudience from "./pages/FacebookAudience";
+import FacebookSentiment from "./pages/FacebookSentiment";
+import FacebookTrends from "./pages/FacebookTrends";
 
 import Settings from "./pages/Settings";
 import ContentCalendar from "./pages/ContentCalendar";
