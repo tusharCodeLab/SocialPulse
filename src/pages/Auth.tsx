@@ -136,7 +136,7 @@ const Auth = () => {
             </h1>
             <p className="text-muted-foreground">
               {isSignUp 
-                ? "Start your 14-day free trial. No credit card required."
+                ? "Sign up for free. No credit card needed — ever."
                 : "Sign in to access your analytics dashboard."
               }
             </p>
