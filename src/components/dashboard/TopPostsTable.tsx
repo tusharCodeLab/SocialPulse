@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Trophy, Heart, MessageCircle, Eye, Instagram, Youtube, Facebook } from 'lucide-react';
+import { Trophy, Heart, MessageCircle, Eye } from 'lucide-react';
+import { InstagramIcon, YouTubeIcon, FacebookIcon } from '@/components/icons/PlatformIcons';
 import { cn } from '@/lib/utils';
 
 interface TopPost {

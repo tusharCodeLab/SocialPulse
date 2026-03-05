@@ -11,13 +11,11 @@ import {
   MessageSquare,
   Shield,
   Clock,
-  Instagram,
-  Youtube,
-  Facebook,
   Users,
   Zap,
   CheckCircle2,
 } from "lucide-react";
+import { InstagramIcon, YouTubeIcon, FacebookIcon } from "@/components/icons/PlatformIcons";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 
 const features = [
