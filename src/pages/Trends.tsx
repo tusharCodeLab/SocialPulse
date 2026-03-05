@@ -100,7 +100,7 @@ export default function Trends() {
   }, {});
 
   return (
-    <DashboardLayout>
+    <>
       <div className="mb-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
