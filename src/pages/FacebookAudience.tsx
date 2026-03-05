@@ -26,37 +26,24 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export default function FacebookAudience() {
   const { toast } = useToast();
   const { data: growth, isLoading: loadingGrowth } = useAudienceGrowthApi(30, 'facebook');
-  const { data: summary, isLoading: loadingSummary } = useAudienceSummaryApi();
+  const { data: fbAccount, isLoading: loadingAccount } = useFacebookAccount();
+  const { data: fbMetrics, isLoading: loadingMetrics } = useAudienceMetrics('facebook', 30);
   const { data: bestTimes, isLoading: loadingTimes } = useBestPostingTimesApi('facebook');
   const calculateBestTimes = useCalculateBestTimes();
 
-  const isLoading = loadingGrowth || loadingSummary || loadingTimes;
+  const isLoading = loadingGrowth || loadingAccount || loadingMetrics || loadingTimes;
 
-  const growthData = growth?.map(g => ({
-    date: new Date(g.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    followers: g.followersCount,
-    newFollowers: g.newFollowers,
-    netChange: g.netChange,
-  })).slice(-14) || [];
-
-  const handleCalculateTimes = async () => {
-    try {
-      const result = await calculateBestTimes.mutateAsync();
-      const count = result?.bestTimes?.length || 0;
-      toast({
-        title: 'Analysis complete',
-        description: count > 0
-          ? `Identified ${count} optimal posting time${count !== 1 ? 's' : ''} from ${result?.totalPostsAnalyzed || 0} posts.`
-          : 'Not enough post data to determine best times. Keep posting!',
-      });
-    } catch (error) {
-      toast({ title: 'Calculation failed', description: error instanceof Error ? error.message : 'Failed to calculate best posting times.', variant: 'destructive' });
-    }
-  };
-
-  const growthRateDisplay = summary?.growthRate
-    ? `${summary.growthRate > 0 ? '+' : ''}${summary.growthRate.toFixed(1)}%`
-    : '0%';
+  // Compute Facebook-specific summary from account + metrics
+  const totalFollowers = fbAccount?.followers_count || 0;
+  const totalFollowing = fbAccount?.following_count || 0;
+  const newFollowersWeek = (fbMetrics || [])
+    .slice(-7)
+    .reduce((sum, m) => sum + (m.new_followers || 0), 0);
+  
+  const oldestMetric = (fbMetrics || [])[0];
+  const growthRate = oldestMetric?.followers_count && oldestMetric.followers_count > 0
+    ? ((totalFollowers - oldestMetric.followers_count) / oldestMetric.followers_count) * 100
+    : 0;
 
   return (
     <>
