@@ -45,6 +45,32 @@ export default function FacebookAudience() {
     ? ((totalFollowers - oldestMetric.followers_count) / oldestMetric.followers_count) * 100
     : 0;
 
+  const growthRateDisplay = growthRate
+    ? `${growthRate > 0 ? '+' : ''}${growthRate.toFixed(1)}%`
+    : '0%';
+
+  const growthData = growth?.map(g => ({
+    date: new Date(g.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    followers: g.followersCount,
+    newFollowers: g.newFollowers,
+    netChange: g.netChange,
+  })).slice(-14) || [];
+
+  const handleCalculateTimes = async () => {
+    try {
+      const result = await calculateBestTimes.mutateAsync();
+      const count = result?.bestTimes?.length || 0;
+      toast({
+        title: 'Analysis complete',
+        description: count > 0
+          ? `Identified ${count} optimal posting time${count !== 1 ? 's' : ''} from ${result?.totalPostsAnalyzed || 0} posts.`
+          : 'Not enough post data to determine best times. Keep posting!',
+      });
+    } catch (error) {
+      toast({ title: 'Calculation failed', description: error instanceof Error ? error.message : 'Failed to calculate best posting times.', variant: 'destructive' });
+    }
+  };
+
   return (
     <>
       <div className="mb-8">
@@ -68,9 +94,9 @@ export default function FacebookAudience() {
         <>
           {/* Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <MetricCard title="Total Followers" value={summary?.totalFollowers.toLocaleString() || '0'} icon={Users} delay={0.1} />
-            <MetricCard title="New This Week" value={`+${summary?.newFollowersWeek.toLocaleString() || '0'}`} icon={UserPlus} delay={0.15} />
-            <MetricCard title="Following" value={summary?.totalFollowing.toLocaleString() || '0'} icon={TrendingUp} delay={0.2} />
+            <MetricCard title="Total Followers" value={totalFollowers.toLocaleString()} icon={Users} delay={0.1} />
+            <MetricCard title="New This Week" value={`+${newFollowersWeek.toLocaleString()}`} icon={UserPlus} delay={0.15} />
+            <MetricCard title="Following" value={totalFollowing.toLocaleString()} icon={TrendingUp} delay={0.2} />
             <MetricCard title="Growth Rate" value={growthRateDisplay} icon={Percent} delay={0.25} />
           </div>
 
