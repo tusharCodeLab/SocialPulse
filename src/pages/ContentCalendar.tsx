@@ -105,16 +105,24 @@ function ScoreRing({ score }: { score: number }) {
   );
 }
 
+const platformFilterOptions = ['all', 'instagram', 'twitter', 'facebook', 'linkedin'] as const;
+
 export default function ContentCalendar() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedItem, setSelectedItem] = useState<CalendarItem | null>(null);
+  const [platformFilter, setPlatformFilter] = useState<string>('all');
   const { toast } = useToast();
 
   const weekDates = useMemo(() => getWeekDates(weekOffset), [weekOffset]);
-  const { data: items = [], isLoading } = useCalendarItems(weekDates[0], weekDates[6]);
+  const { data: rawItems = [], isLoading } = useCalendarItems(weekDates[0], weekDates[6]);
   const generateCalendar = useGenerateCalendar();
   const updateItem = useUpdateCalendarItem();
   const deleteItem = useDeleteCalendarItem();
+
+  const items = useMemo(() => 
+    platformFilter === 'all' ? rawItems : rawItems.filter(i => i.platform === platformFilter),
+    [rawItems, platformFilter]
+  );
 
   const itemsByDate = useMemo(() => {
     const map: Record<string, CalendarItem[]> = {};
@@ -126,6 +134,15 @@ export default function ContentCalendar() {
   }, [items, weekDates]);
 
   const today = new Date().toISOString().split("T")[0];
+
+  // Content type breakdown for the week
+  const weekSummary = useMemo(() => {
+    const types: Record<string, number> = {};
+    rawItems.forEach(item => {
+      types[item.content_type] = (types[item.content_type] || 0) + 1;
+    });
+    return types;
+  }, [rawItems]);
 
   const handleGenerate = async () => {
     try {
