@@ -40,9 +40,9 @@ import {
 } from "@/components/ui/dialog";
 
 const platformIcons: Record<string, any> = {
-  instagram: Instagram,
-  twitter: Twitter,
-  facebook: Facebook,
+  instagram: InstagramIcon,
+  twitter: Linkedin, // placeholder
+  facebook: FacebookIcon,
   linkedin: Linkedin,
 };
 
