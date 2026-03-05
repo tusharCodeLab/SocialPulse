@@ -58,7 +58,7 @@ export default function AudienceInsights() {
     : '0%';
 
   return (
-    <DashboardLayout>
+    <>
       <div className="mb-8">
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <h1 className="text-3xl font-bold text-foreground mb-2">Audience Insights</h1>
