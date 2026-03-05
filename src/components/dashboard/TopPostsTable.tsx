@@ -58,7 +58,7 @@ export function TopPostsTable({ posts }: { posts: TopPost[] }) {
         {posts.length > 0 ? (
           <div className="space-y-2">
             {posts.map((post, i) => {
-              const PIcon = PLATFORM_ICONS[post.platform] || Instagram;
+              const PIcon = PLATFORM_ICONS[post.platform] || InstagramIcon;
               const pColor = PLATFORM_COLORS[post.platform] || '#888';
               const barWidth = (post.reach / maxReach) * 100;
 

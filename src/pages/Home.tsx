@@ -181,9 +181,9 @@ const Home = () => {
           >
             <span className="text-xs text-muted-foreground uppercase tracking-widest">Supported Platforms</span>
             {[
-              { icon: Instagram, color: "text-[#E4405F]", name: "Instagram" },
-              { icon: Youtube, color: "text-[#FF0000]", name: "YouTube" },
-              { icon: Facebook, color: "text-[#1877F2]", name: "Facebook" },
+              { icon: InstagramIcon, name: "Instagram" },
+              { icon: YouTubeIcon, name: "YouTube" },
+              { icon: FacebookIcon, name: "Facebook" },
             ].map((p, i) => (
               <motion.div
                 key={p.name}
