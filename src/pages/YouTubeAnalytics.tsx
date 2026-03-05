@@ -96,9 +96,8 @@ export default function YouTubeAnalytics() {
       </motion.div>
 
       {/* Top Metrics */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
         <MetricTile icon={Eye} label="Total Views" value={formatNum(totals.totalViews)} color="bg-[#FF0000]/10" />
-        <MetricTile icon={Clock} label="Watch Time (est.)" value={hasData ? formatNum(Math.round(totals.totalViews * 0.05)) : '0'} color="bg-chart-reach/10" />
         <MetricTile icon={Users} label="Subscribers" value={formatNum(account?.followers_count || 0)} color="bg-chart-impressions/10" />
         <MetricTile icon={ThumbsUp} label="Likes" value={formatNum(totals.totalLikes)} color="bg-primary/10" />
         <MetricTile icon={MessageCircle} label="Comments" value={formatNum(totals.totalComments)} color="bg-chart-sentiment-positive/10" />
