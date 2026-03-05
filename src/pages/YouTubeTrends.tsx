@@ -3,7 +3,7 @@ import {
   Youtube, TrendingUp, Activity, Lightbulb, BarChart3,
   ArrowUp, ArrowDown, Minus, Loader2,
 } from 'lucide-react';
-import { DashboardLayout } from '@/components/DashboardLayout';
+
 import { ChartCard } from '@/components/dashboard/ChartCard';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
