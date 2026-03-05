@@ -58,19 +58,6 @@ export default function YouTubePostsAnalysis() {
       }));
   }, [videos]);
 
-  // Content type breakdown
-  const contentTypes = useMemo(() => {
-    const types: Record<string, { count: number; views: number; likes: number }> = {};
-    videos.forEach(v => {
-      const t = v.post_type || 'video';
-      if (!types[t]) types[t] = { count: 0, views: 0, likes: 0 };
-      types[t].count++;
-      types[t].views += v.reach || 0;
-      types[t].likes += v.likes_count || 0;
-    });
-    return Object.entries(types).map(([name, d]) => ({ name, ...d }));
-  }, [videos]);
-
   // Upload frequency (per week)
   const uploadFreq = useMemo(() => {
     const weeks: Record<string, number> = {};
@@ -186,23 +173,8 @@ export default function YouTubePostsAnalysis() {
       </div>
 
       {/* Content Type Breakdown & Upload Frequency */}
-      <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Content Type Performance" subtitle="Views by content type" delay={0.4}>
-          <div className="h-[250px]">
-            {contentTypes.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={contentTypes}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(222,30%,15%)" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} stroke="hsl(215,20%,50%)" />
-                  <YAxis tick={{ fontSize: 10 }} stroke="hsl(215,20%,50%)" />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="views" fill="hsl(0,80%,50%)" radius={[4, 4, 0, 0]} name="Views" />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : emptyState}
-          </div>
-        </ChartCard>
-        <ChartCard title="Upload Frequency" subtitle="Videos published per week" delay={0.45}>
+      <div className="mt-6">
+        <ChartCard title="Upload Frequency" subtitle="Videos published per week" delay={0.4}>
           <div className="h-[250px]">
             {uploadFreq.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
