@@ -1,76 +1,26 @@
 
 
-# Sidebar Restructure and Cleanup
+## Fix: Remove Fake YouTube Data, Keep Only Real API Data
 
-## What Changes
+### Problem Found
+In `YouTubeAnalytics.tsx` (line 101), there is a **fabricated "Watch Time (est.)"** metric calculated as `totalViews * 0.05`. This is not real data -- it's a made-up estimation. The YouTube Data API v3 (public key-based) does not provide watch time data; that requires the YouTube Analytics API with full OAuth 2.0, which this project does not implement.
 
-### 1. Remove Non-Working Features
-- **Remove the Reports page** (`/reports` route, `Reports.tsx`) -- it's a "Coming Soon" placeholder with no functionality
-- **Remove the Reports entry** from the sidebar navigation
+All other YouTube data across all pages (`YouTubePostsAnalysis`, `YouTubeSentiment`, `YouTubeTrends`, `YouTubeAudience`, Dashboard) is correctly sourced from the database, which is populated by the `fetch-youtube` edge function using the real YouTube Data API v3.
 
-### 2. Reorganize Sidebar into Grouped Sections
-Instead of a flat list of 7 items, organize into logical groups with section labels:
+### What to Change
 
-```text
-+-------------------------------+
-|  [Logo] Analytics             |
-|          Social Dashboard     |
-+-------------------------------+
-|  [AI-Powered badge]           |
-+-------------------------------+
-|                               |
-|  OVERVIEW                     |
-|    Dashboard                  |
-|                               |
-|  ANALYTICS                    |
-|    Posts Analysis              |
-|    Audience Insights           |
-|    Sentiment                   |
-|                               |
-|  AI & TOOLS                   |
-|    AI Tools                    |
-|                               |
-|  ACCOUNT                      |
-|    Settings                    |
-|                               |
-+-------------------------------+
-|  [User info]                  |
-|  [Sign Out]                   |
-|  [Collapse]                   |
-+-------------------------------+
-```
+**`src/pages/YouTubeAnalytics.tsx`** (line 101):
+- **Remove** the "Watch Time (est.)" metric tile entirely since it shows fake data
+- Adjust the grid from 6 columns to 5 columns to accommodate the removal
+- All remaining metrics (Total Views, Subscribers, Likes, Comments, Videos) are real API data
 
-### 3. Files to Modify
-- **`src/components/navigation/AppSidebar.tsx`** -- Replace flat `navItems` array with grouped sections; add section labels that hide when collapsed
-- **`src/App.tsx`** -- Remove the `/reports` route
-- **`src/pages/Reports.tsx`** -- Delete this file
+### What Stays (already correct)
+- `useYouTubeVideos()` -- queries real `posts` table data imported via YouTube API
+- `useYouTubeComments()` -- queries real `post_comments` table data imported via YouTube API  
+- `useYouTubeAccount()` -- queries real `social_accounts` table (subscribers, channel name)
+- `useYouTubeAudienceMetrics()` -- queries real `audience_metrics` table snapshots
+- Dashboard platform comparison cards and reach trends -- all query real database data
+- All chart data derived from these hooks is real
 
-### 4. Files Unchanged
-- `SidebarNavLink.tsx` -- Works as-is, no changes needed
-- `DashboardLayout.tsx` -- No changes needed
-- All other pages remain intact
+This is a single-line removal. No other YouTube pages have fake data.
 
-## Technical Details
-
-**AppSidebar.tsx changes:**
-- Replace the single `navItems` array with a grouped structure:
-  ```ts
-  const navGroups = [
-    { label: 'Overview', items: [{ to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' }] },
-    { label: 'Analytics', items: [
-      { to: '/posts', icon: FileText, label: 'Posts Analysis' },
-      { to: '/audience', icon: Users, label: 'Audience Insights' },
-      { to: '/sentiment', icon: Heart, label: 'Sentiment' },
-    ]},
-    { label: 'AI & Tools', items: [{ to: '/ai-tools', icon: Brain, label: 'AI Tools' }] },
-    { label: 'Account', items: [{ to: '/settings', icon: Settings, label: 'Settings' }] },
-  ];
-  ```
-- Render each group with a small uppercase label (hidden when sidebar is collapsed) and its nav items below
-- Remove `BarChart3` import (was for Reports)
-
-**App.tsx changes:**
-- Remove `import Reports` and the `/reports` route
-
-**Reports.tsx:**
-- Delete the file entirely
