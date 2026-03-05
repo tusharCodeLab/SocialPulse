@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import {
   Users, Heart, Eye, Sparkles, RefreshCw,
   TrendingUp, Loader2, Activity, AlertTriangle, Target,
-  Instagram, Youtube, Facebook, MessageCircle, BarChart3, Wifi, Clock,
+  MessageCircle, BarChart3, Wifi, Clock,
 } from 'lucide-react';
+import { InstagramIcon, YouTubeIcon, FacebookIcon } from '@/components/icons/PlatformIcons';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell,
@@ -32,9 +33,9 @@ import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
 
 /* ── Constants ── */
 const PLATFORM_CONFIG = {
-  instagram: { icon: Instagram, color: '#E4405F', label: 'Instagram', border: 'border-l-[#E4405F]' },
-  youtube: { icon: Youtube, color: '#FF0000', label: 'YouTube', border: 'border-l-[#FF0000]' },
-  facebook: { icon: Facebook, color: '#1877F2', label: 'Facebook', border: 'border-l-[#1877F2]' },
+  instagram: { icon: InstagramIcon, color: '#E4405F', label: 'Instagram', border: 'border-l-[#E4405F]' },
+  youtube: { icon: YouTubeIcon, color: '#FF0000', label: 'YouTube', border: 'border-l-[#FF0000]' },
+  facebook: { icon: FacebookIcon, color: '#1877F2', label: 'Facebook', border: 'border-l-[#1877F2]' },
 };
 
 /* ── Reach Chart Tooltip ── */
@@ -78,7 +79,7 @@ function PlatformCard({ platform, metrics }: { platform: 'instagram' | 'youtube'
       <div className="p-4 relative z-10">
         <div className="flex items-center gap-2.5 mb-3">
           <div className="p-2 rounded-lg" style={{ backgroundColor: `${config.color}15` }}>
-            <Icon className="h-4 w-4" style={{ color: config.color }} />
+            <Icon className="h-4 w-4" />
           </div>
           <h3 className="text-sm font-bold text-foreground">{config.label}</h3>
         </div>
