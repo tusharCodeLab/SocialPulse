@@ -350,6 +350,6 @@ export default function Dashboard() {
           ) : null}
         </div>
       </motion.div>
-    </DashboardLayout>
+    </>
   );
 }

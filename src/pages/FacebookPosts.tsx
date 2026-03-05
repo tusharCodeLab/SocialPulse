@@ -104,6 +104,6 @@ export default function FacebookPosts() {
           </div>
         </motion.div>
       )}
-    </DashboardLayout>
+    </>
   );
 }

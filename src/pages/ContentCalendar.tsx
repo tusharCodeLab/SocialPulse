@@ -476,6 +476,6 @@ export default function ContentCalendar() {
           })()}
         </DialogContent>
       </Dialog>
-    </DashboardLayout>
+    </>
   );
 }

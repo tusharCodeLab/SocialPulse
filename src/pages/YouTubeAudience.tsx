@@ -73,6 +73,6 @@ export default function YouTubeAudience() {
           ) : emptyState}
         </div>
       </ChartCard>
-    </DashboardLayout>
+    </>
   );
 }

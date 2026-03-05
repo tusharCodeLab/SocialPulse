@@ -87,6 +87,6 @@ export default function YouTubeSentiment() {
           )}
         </ChartCard>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

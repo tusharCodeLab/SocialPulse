@@ -218,6 +218,6 @@ export default function YouTubePostsAnalysis() {
           </div>
         </ChartCard>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

@@ -317,6 +317,6 @@ export default function Sentiment() {
           </div>
         </>
       )}
-    </DashboardLayout>
+    </>
   );
 }

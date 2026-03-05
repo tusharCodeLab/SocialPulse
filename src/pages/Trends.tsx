@@ -294,6 +294,6 @@ export default function Trends() {
           ) : null}
         </div>
       </motion.div>
-    </DashboardLayout>
+    </>
   );
 }

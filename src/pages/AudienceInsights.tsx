@@ -231,6 +231,6 @@ export default function AudienceInsights() {
           </div>
         </>
       )}
-    </DashboardLayout>
+    </>
   );
 }

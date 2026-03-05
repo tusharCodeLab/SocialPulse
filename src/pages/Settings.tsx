@@ -283,6 +283,6 @@ export default function Settings() {
           </motion.div>
         </ChartCard>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

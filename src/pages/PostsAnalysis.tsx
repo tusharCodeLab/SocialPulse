@@ -556,6 +556,6 @@ export default function PostsAnalysis() {
           </ChartCard>
         </>
       )}
-    </DashboardLayout>
+    </>
   );
 }

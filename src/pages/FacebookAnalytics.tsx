@@ -211,6 +211,6 @@ export default function FacebookAnalytics() {
           </motion.div>
         </TabsContent>
       </Tabs>
-    </DashboardLayout>
+    </>
   );
 }

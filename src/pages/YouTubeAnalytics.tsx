@@ -213,6 +213,6 @@ export default function YouTubeAnalytics() {
           </motion.div>
         </TabsContent>
       </Tabs>
-    </DashboardLayout>
+    </>
   );
 }

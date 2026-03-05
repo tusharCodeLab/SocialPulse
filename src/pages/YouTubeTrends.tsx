@@ -134,6 +134,6 @@ export default function YouTubeTrends() {
           )}
         </div>
       </motion.div>
-    </DashboardLayout>
+    </>
   );
 }

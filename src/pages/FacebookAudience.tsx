@@ -76,6 +76,6 @@ export default function FacebookAudience() {
           )}
         </motion.div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
