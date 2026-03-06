@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Users, Heart, Eye, Sparkles, RefreshCw,
-  TrendingUp, Loader2, Activity, AlertTriangle, Target,
-  MessageCircle, BarChart3, Wifi, Clock,
+  Users, Heart, Eye,
+  TrendingUp, MessageCircle, BarChart3, Wifi,
 } from 'lucide-react';
 import { InstagramIcon, YouTubeIcon, FacebookIcon } from '@/components/icons/PlatformIcons';
 import {
@@ -19,7 +18,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import {
   useDashboardSummaryApi, useSentimentStatsApi,
 } from '@/hooks/useSocialApi';
-import { useAIPerformanceDigest, PerformanceDigest } from '@/hooks/useAIFeatures';
 import { usePlatformComparison, useReachTrends, useTopContentByReach, useCrossPlatformInsights } from '@/hooks/useCrossPlatformData';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
@@ -28,8 +26,8 @@ import { EnhancedMetricCard } from '@/components/dashboard/EnhancedMetricCard';
 import { EngagementBreakdown } from '@/components/dashboard/EngagementBreakdown';
 import { TopPostsTable } from '@/components/dashboard/TopPostsTable';
 import { SentimentPanel } from '@/components/dashboard/SentimentPanel';
-import { QuickActionsRow } from '@/components/dashboard/QuickActionsRow';
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
+import { RefreshCw } from 'lucide-react';
 
 /* ── Constants ── */
 const PLATFORM_CONFIG = {
@@ -118,19 +116,7 @@ export default function Dashboard() {
   const { data: reachTrends } = useReachTrends();
   const { data: topPosts } = useTopContentByReach();
   const { data: insights } = useCrossPlatformInsights();
-  const aiDigest = useAIPerformanceDigest();
-  const [digest, setDigest] = useState<PerformanceDigest | null>(null);
   const [period, setPeriod] = useState<'7d' | '14d' | '30d' | 'all'>('all');
-
-  const handleGenerateDigest = async () => {
-    try {
-      const result = await aiDigest.mutateAsync();
-      if (result.digest) setDigest(result.digest);
-      else toast({ title: 'Not enough data', description: result.message || 'Import your data first.' });
-    } catch (error) {
-      toast({ title: 'Digest Failed', description: error instanceof Error ? error.message : 'Failed to generate.', variant: 'destructive' });
-    }
-  };
 
   const platformMap = (platformMetrics || []).reduce((acc, p) => { acc[p.platform] = p; return acc; }, {} as Record<string, any>);
   const avgEngagement = platformMetrics?.length
@@ -351,105 +337,8 @@ export default function Dashboard() {
         </div>
       </motion.div>
 
-      {/* ─── Section 5: Quick Actions ─── */}
-      <div>
-        <div className="flex items-center gap-2.5 mb-3">
-          <h3 className="text-sm font-bold text-foreground">Quick AI Actions</h3>
-          <div className="flex-1 h-px bg-border/40" />
-        </div>
-        <QuickActionsRow />
-      </div>
-
-      {/* ─── Section 6: AI Digest + Activity Feed ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        {/* AI Digest — 3 cols */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-          className="lg:col-span-3 rounded-xl border border-primary/20 bg-gradient-to-r from-card via-card to-primary/5 overflow-hidden"
-          style={{ boxShadow: '0 4px 30px -8px hsl(173 80% 45% / 0.12)' }}
-        >
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-chart-reach/20 border border-primary/30">
-                  <Activity className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-foreground">AI Performance Digest</h3>
-                  <p className="text-[10px] text-muted-foreground">
-                    {digest ? digest.headline : 'AI-generated weekly performance summary'}
-                  </p>
-                </div>
-              </div>
-              <Button size="sm" variant="outline" onClick={handleGenerateDigest} disabled={aiDigest.isPending} className="gap-1.5 h-7 text-xs">
-                {aiDigest.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-                {digest ? 'Refresh' : 'Generate'}
-              </Button>
-            </div>
-
-            {digest ? (
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
-                <p className="text-sm text-muted-foreground leading-relaxed">{digest.summary}</p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  <div className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/30 border border-border/50">
-                    <div className="relative w-10 h-10 flex-shrink-0">
-                      <svg className="w-10 h-10 -rotate-90" viewBox="0 0 48 48">
-                        <circle cx="24" cy="24" r="18" fill="none" stroke="hsl(var(--muted))" strokeWidth="3.5" />
-                        <circle cx="24" cy="24" r="18" fill="none" stroke="hsl(var(--primary))" strokeWidth="3.5"
-                          strokeDasharray={`${(digest.healthScore / 100) * 113} 113`} strokeLinecap="round" />
-                      </svg>
-                      <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-primary">{digest.healthScore}</span>
-                    </div>
-                    <div>
-                      <p className="text-xs font-semibold text-foreground">{digest.healthLabel}</p>
-                      <p className="text-[9px] text-muted-foreground">Health Score</p>
-                    </div>
-                  </div>
-                  {digest.highlights.slice(0, 3).map((h, i) => (
-                    <div key={i} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/30 border border-border/50">
-                      <span className="text-base">{h.emoji}</span>
-                      <p className="text-[11px] text-foreground leading-tight line-clamp-2">{h.text}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-3">
-                  <div className="flex-1 p-2.5 rounded-lg bg-chart-sentiment-positive/5 border border-chart-sentiment-positive/20">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <Target className="h-3 w-3 text-chart-sentiment-positive" />
-                      <span className="text-[10px] font-semibold text-chart-sentiment-positive uppercase">Weekly Goal</span>
-                    </div>
-                    <p className="text-xs text-foreground">{digest.weeklyGoal}</p>
-                  </div>
-                  {digest.riskAlert && (
-                    <div className="flex-1 p-2.5 rounded-lg bg-destructive/5 border border-destructive/20">
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <AlertTriangle className="h-3 w-3 text-destructive" />
-                        <span className="text-[10px] font-semibold text-destructive uppercase">Risk Alert</span>
-                      </div>
-                      <p className="text-xs text-foreground">{digest.riskAlert}</p>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            ) : aiDigest.isPending ? (
-              <div className="flex items-center justify-center gap-2 py-6">
-                <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                <span className="text-xs text-muted-foreground">Generating your performance digest...</span>
-              </div>
-            ) : (
-              <div className="py-6 text-center">
-                <Sparkles className="h-6 w-6 text-primary/30 mx-auto mb-2" />
-                <p className="text-xs text-muted-foreground">Click Generate to get your AI-powered performance summary</p>
-              </div>
-            )}
-          </div>
-        </motion.div>
-
-        {/* Activity Feed — 2 cols */}
-        <div className="lg:col-span-2">
-          <ActivityFeed insights={insights || []} />
-        </div>
-      </div>
+      {/* ─── Section 5: Activity Feed ─── */}
+      <ActivityFeed insights={insights || []} />
     </div>
   );
 }
