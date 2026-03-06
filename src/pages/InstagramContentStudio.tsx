@@ -287,6 +287,7 @@ export default function InstagramContentStudio() {
     setVersions([]);
     setSelectedVersion(null);
     setStrategy(null);
+    setTopicExplanation(null);
   };
 
   const copyToClipboard = (text: string, label: string) => {
