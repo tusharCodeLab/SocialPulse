@@ -43,6 +43,25 @@ interface ContentIdeasResult {
   strategy: string;
 }
 
+interface TrendingWorldTopic {
+  title: string;
+  context: string;
+  whyTrending: string;
+}
+
+const CATEGORIES = [
+  { label: 'Technology', icon: Cpu, color: 'hsl(var(--primary))' },
+  { label: 'Health & Fitness', icon: Heart, color: 'hsl(0 84% 60%)' },
+  { label: 'Entertainment', icon: Film, color: 'hsl(280 84% 60%)' },
+  { label: 'Business & Finance', icon: Briefcase, color: 'hsl(45 93% 47%)' },
+  { label: 'Travel', icon: Plane, color: 'hsl(199 89% 48%)' },
+  { label: 'Food & Cooking', icon: UtensilsCrossed, color: 'hsl(25 95% 53%)' },
+  { label: 'Fashion & Beauty', icon: Shirt, color: 'hsl(330 81% 60%)' },
+  { label: 'Education', icon: GraduationCap, color: 'hsl(142 71% 45%)' },
+  { label: 'Sports', icon: Trophy, color: 'hsl(210 79% 46%)' },
+  { label: 'Science & Environment', icon: Leaf, color: 'hsl(160 84% 39%)' },
+] as const;
+
 interface BestTime {
   rank: number;
   day: string;
