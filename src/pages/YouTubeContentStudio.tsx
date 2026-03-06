@@ -641,7 +641,9 @@ export default function YouTubeContentStudio() {
                               {selectedFormat === 'video' ? 'Video Script' : 'Short Script'}
                             </span>
                           </div>
-                          <ScriptDisplay script={version.script} format={selectedFormat!} />
+                          <ExpandableSection maxHeight={200}>
+                            <ScriptDisplay script={version.script} format={selectedFormat!} />
+                          </ExpandableSection>
                         </div>
                       </CardContent>
                     </Card>
