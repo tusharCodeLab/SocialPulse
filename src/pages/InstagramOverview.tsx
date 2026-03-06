@@ -89,23 +89,23 @@ export default function InstagramOverview() {
 
   return (
     <>
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-6">
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-[#E4405F]/10"><InstagramIcon className="h-6 w-6" /></div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Instagram Overview</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Instagram Overview</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
               {igAccount ? `@${igAccount.account_handle?.replace('@', '')} — ${formatNum(igAccount.followers_count || 0)} followers` : 'Account performance & post insights'}
             </p>
           </div>
         </div>
-        <Badge variant="outline" className="gap-1.5 text-xs border-[#E4405F]/30 text-[#E4405F]">
+        <Badge variant="outline" className="gap-1.5 text-xs border-[#E4405F]/30 text-[#E4405F] self-start sm:self-auto">
           <InstagramIcon className="h-3 w-3" /> Instagram
         </Badge>
       </motion.div>
 
       {/* Enhanced Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
         <EnhancedMetricCard label="Followers" value={formatNum(igAccount?.followers_count || 0)} icon={Users} color="hsl(340,82%,52%)" delay={0.05} />
         <EnhancedMetricCard label="Total Likes" value={formatNum(totals.totalLikes)} icon={ThumbsUp} color="hsl(var(--primary))" delay={0.1} sparkData={postsTrend.slice(-7).map(p => p.likes)} />
         <EnhancedMetricCard label="Total Comments" value={formatNum(totals.totalComments)} icon={MessageCircle} color="hsl(262,83%,58%)" delay={0.15} sparkData={postsTrend.slice(-7).map(p => p.comments)} />
@@ -141,7 +141,7 @@ export default function InstagramOverview() {
                 </Select>
               </div>
               <p className="text-[10px] text-muted-foreground mb-4">Impressions per post over time</p>
-              <div className="h-[240px]">
+              <div className="h-[180px] sm:h-[240px]">
                 {filteredViewsTrend.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={filteredViewsTrend}>
@@ -201,7 +201,7 @@ export default function InstagramOverview() {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-5 rounded-xl border border-border/60 bg-card p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
             <div className="flex items-center gap-2 mb-1"><ThumbsUp className="h-4 w-4 text-primary" /><h3 className="text-sm font-semibold text-foreground">Likes per Post</h3></div>
             <p className="text-[10px] text-muted-foreground mb-4">Like counts across posts</p>
-            <div className="h-[220px]">
+            <div className="h-[180px] sm:h-[220px]">
               {hasData ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={postsTrend}>
@@ -221,7 +221,7 @@ export default function InstagramOverview() {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-border/60 bg-card p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
             <div className="flex items-center gap-2 mb-1"><TrendingUp className="h-4 w-4 text-chart-reach" /><h3 className="text-sm font-semibold text-foreground">Engagement Rate by Post</h3></div>
             <p className="text-[10px] text-muted-foreground mb-4">(Likes + Comments) / Reach × 100</p>
-            <div className="h-[280px]">
+            <div className="h-[200px] sm:h-[280px]">
               {hasData ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={postsTrend.map((v, i) => {

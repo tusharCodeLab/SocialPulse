@@ -155,22 +155,22 @@ export default function Dashboard() {
   return (
     <div className="space-y-5">
       {/* ─── Section 1: Header ─── */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">
             Welcome, <span className="gradient-text">{user?.email?.split('@')[0] || 'Analyst'}</span>
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">Your cross-platform analytics command center</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           {/* Connected platforms badge */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border/60 text-[10px]">
             <Wifi className="h-3 w-3 text-chart-sentiment-positive" />
             <span className="text-muted-foreground">{connectedAccounts?.filter(a => a.isConnected).length || 0} connected</span>
           </div>
-          {/* Sentiment mini-donut */}
+          {/* Sentiment mini-donut — hidden on small screens */}
           {sentiment && sentiment.total > 0 && (
-            <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-card border border-border/60">
+            <div className="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-lg bg-card border border-border/60">
               <div className="w-8 h-8 relative">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -243,7 +243,7 @@ export default function Dashboard() {
           className="lg:col-span-2 rounded-xl border border-border bg-card p-5"
           style={{ boxShadow: 'var(--shadow-card)' }}
         >
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
             <div className="flex items-center gap-2.5">
               <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
                 <TrendingUp className="h-4 w-4 text-primary" />
@@ -253,7 +253,7 @@ export default function Dashboard() {
                 <p className="text-[10px] text-muted-foreground">Cross-platform reach over time</p>
               </div>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-wrap">
               {(['7d', '14d', '30d', 'all'] as const).map(p => (
                 <button
                   key={p} onClick={() => setPeriod(p)}
@@ -276,7 +276,7 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-          <div className="h-[300px]">
+          <div className="h-[220px] md:h-[300px]">
             {filteredTrends.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={filteredTrends} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
