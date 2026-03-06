@@ -747,13 +747,13 @@ export default function YouTubeContentStudio() {
                 </div>
 
                 <div>
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Script</span>
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Clapperboard className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      {selectedFormat === 'video' ? 'Full Video Script' : 'Short Script'}
+                    </span>
                   </div>
-                  <div className="text-sm text-foreground bg-muted/50 rounded-lg p-3 whitespace-pre-line max-h-48 overflow-y-auto">
-                    {selectedVersion?.script}
-                  </div>
+                  <ScriptDisplay script={selectedVersion?.script || ''} format={selectedFormat!} />
                 </div>
 
                 <div className="flex gap-2 pt-2">
