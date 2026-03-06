@@ -102,6 +102,8 @@ export default function InstagramContentStudio() {
   const [customTopic, setCustomTopic] = useState('');
   const [strategy, setStrategy] = useState<PublishingStrategy | null>(null);
   const [loadingStrategy, setLoadingStrategy] = useState(false);
+  const [topicExplanation, setTopicExplanation] = useState<TopicExplanation | null>(null);
+  const [loadingExplanation, setLoadingExplanation] = useState(false);
   const [contentIdeas, setContentIdeas] = useState<ContentIdeasResult | null>(null);
   const [loadingIdeas, setLoadingIdeas] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
