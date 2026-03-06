@@ -1,35 +1,35 @@
 
 
-## Plan: Add Light/Dark Theme Toggle with Professional Light Theme
+## Plan: Add AI-Powered "Best Time to Post" Page Under Instagram
 
-Currently the app is dark-only with no theme switching. Will add a proper light theme and a toggle in Settings + sidebar.
+Add a new sub-option under the Instagram section in the sidebar that uses generative AI to analyze the user's posting history and recommend optimal posting times.
 
 ### Changes
 
-**1. `src/index.css`** — Add a `.light` class (or default `:root` as light, `.dark` as dark)
-- Add complete light theme CSS variables under a `.light` selector covering all `--background`, `--card`, `--primary`, `--border`, `--sidebar-*`, `--chart-*`, `--shadow-*`, and `--gradient-*` variables
-- Professional light palette: clean whites, soft grays, maintain the teal primary accent
+**1. New page: `src/pages/InstagramBestTime.tsx`**
+- Professional page with a "Generate Best Times" button that calls an edge function
+- Displays AI-generated recommendations as a visual schedule (day/hour heatmap or ranked list)
+- Shows reasoning from AI (why these times work), confidence scores, and sample sizes
+- Loading/empty states for users with insufficient data
 
-**2. `src/stores/settingsStore.ts`** — Add `theme` state
-- Add `theme: 'dark' | 'light'` with `setTheme` action
-- Persist in localStorage alongside existing settings
-- On load, apply the class to `document.documentElement`
+**2. New edge function: `supabase/functions/ai-best-times/index.ts`**
+- Fetches user's Instagram posts from the `posts` table (platform = 'instagram')
+- Calculates engagement patterns by day/hour from historical data
+- Sends the aggregated data to Lovable AI (gemini-3-flash-preview) to generate human-readable insights and strategic recommendations
+- Returns both the raw best times and AI-generated explanations
+- Handles auth, CORS, rate limits (429/402)
 
-**3. `src/App.tsx`** — Apply theme class on mount
-- Read theme from store and apply `dark`/`light` class to `<html>` element via a small `useEffect`
+**3. Update `src/components/navigation/AppSidebar.tsx`**
+- Add `{ to: '/instagram-best-time', icon: Clock, label: 'Best Time to Post' }` to the Instagram platform group items
 
-**4. `src/pages/Settings.tsx`** — Add "Appearance" section
-- New card between Profile and Connected Platforms with a toggle switch for Light/Dark mode
-- Include Sun/Moon icon indicator
+**4. Update `src/App.tsx`**
+- Add route: `<Route path="/instagram-best-time" element={<InstagramBestTime />} />`
 
-**5. `src/components/navigation/AppSidebar.tsx`** — Add quick theme toggle button
-- Small Sun/Moon icon button in the sidebar footer for fast switching
+**5. Update `supabase/config.toml`** (via convention)
+- Add `[functions.ai-best-times]` with `verify_jwt = false`
 
-### Light Theme Color Palette
-- Background: white/gray-50
-- Cards: white with subtle gray borders
-- Text: gray-900 foreground, gray-500 muted
-- Primary: same teal (173 80% 40%) adjusted for light contrast
-- Sidebar: gray-50/white with teal accents
-- Shadows: soft gray instead of dark
+### AI Integration
+- Uses Lovable AI gateway with `google/gemini-3-flash-preview`
+- Prompt includes aggregated engagement data per day/hour slot
+- AI returns natural-language recommendations with strategic reasoning (e.g., "Tuesday 6PM — your audience is most active after work hours")
 
