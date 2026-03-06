@@ -1,31 +1,46 @@
 
 
-## Add Average View Duration Chart to YouTube Posts Analysis
+## Professional Content Suggestions in Content Studio
 
 ### Problem
-The `posts` table has no `duration_seconds` column, and the `fetch-youtube` edge function already fetches `contentDetails` (which includes ISO 8601 duration like `PT4M13S`) but doesn't store it.
+The "Trending Topics" section currently shows raw trend data from `personal_trends`. The user wants professional, actionable content suggestions for future posts -- ideas they can act on, not just data points.
+
+### Approach
+Replace the current trending topics grid with an AI-powered "Content Suggestions" section that calls the existing `ai-content-ideas` edge function. This function already generates strategic content ideas with format recommendations, priority levels, estimated impact, and best posting days.
 
 ### Plan
 
-#### 1. Database Migration
-Add a `duration_seconds` integer column to the `posts` table (nullable, default null). Only YouTube videos will populate this.
+#### 1. Add Content Suggestions UI to Step 1 (`InstagramContentStudio.tsx`)
+- Add a new "Content Suggestions" section below (or replacing) the trending topics grid
+- Add a "Get AI Suggestions" button that calls `ai-content-ideas`
+- Display returned ideas as professional cards with:
+  - Title and description
+  - Recommended format (Reel, Carousel, etc.) as a badge
+  - Priority level (High/Medium/Low) with color-coded indicator
+  - "Based on" field showing which trend drives the idea
+  - Estimated impact summary
+  - Best day to post
+  - Overall strategy summary at the top
+- Clicking a suggestion card feeds its title into `generateForTopic()` to proceed to Step 2
 
-```sql
-ALTER TABLE public.posts ADD COLUMN duration_seconds integer;
-```
+#### 2. State & Query Changes
+- Add state for `contentIdeas` and `loadingIdeas`
+- Add a query or manual fetch to `ai-content-ideas` edge function
+- Keep the existing trending topics section as a secondary option below
+- Keep the custom topic input at top as-is
 
-#### 2. Update `fetch-youtube` Edge Function
-- Parse the ISO 8601 duration from `v.contentDetails.duration` (e.g. `PT4M13S` → 253 seconds)
-- Store it in the new `duration_seconds` field during post upsert
+#### 3. Card Design
+Each suggestion card will have:
+- Priority badge (color-coded: green for High, amber for Medium, gray for Low)
+- Format badge (Reel, Carousel, etc.)
+- Best day chip
+- Title (bold), description, estimated impact text
+- "Based on" as subtle attribution
+- Click action to generate posts from that idea
 
-#### 3. Add Chart to `src/pages/YouTubePostsAnalysis.tsx`
-- Compute average view duration per video from `duration_seconds`
-- Add a new `AreaChart` or `BarChart` showing duration per video (formatted as `MM:SS`)
-- Place it in the charts grid alongside existing charts
-- Include proper empty state handling
+#### 4. Strategy Banner
+Display the AI's overall `strategy` recommendation as a highlighted banner above the suggestion cards.
 
 ### Files Modified
-- `posts` table — new column via migration
-- `supabase/functions/fetch-youtube/index.ts` — parse & store duration
-- `src/pages/YouTubePostsAnalysis.tsx` — new duration chart
+- `src/pages/InstagramContentStudio.tsx` -- add content suggestions section with AI call and professional card layout
 
