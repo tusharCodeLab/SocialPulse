@@ -332,14 +332,18 @@ export default function InstagramContentStudio() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {versions.map(version => (
                   <motion.div key={version.id} whileHover={{ y: -4 }}>
-                    <Card className="h-full hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/5 cursor-pointer"
-                          onClick={() => handleVersionSelect(version)}>
+                    <Card className="h-full hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/5 overflow-hidden">
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <Badge className="bg-primary/10 text-primary border-primary/20 text-sm font-bold">
                             Version {version.id}
                           </Badge>
-                          <Button size="sm" variant="outline" className="gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1"
+                            onClick={() => handleVersionSelect(version)}
+                          >
                             Select <ArrowRight className="h-3 w-3" />
                           </Button>
                         </div>
@@ -369,7 +373,7 @@ export default function InstagramContentStudio() {
                             <FileText className="h-3.5 w-3.5 text-muted-foreground" />
                             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Script</span>
                           </div>
-                          <div className="text-sm text-muted-foreground bg-muted/30 rounded-lg p-3 whitespace-pre-line">
+                          <div className="text-sm text-muted-foreground bg-muted/30 rounded-lg p-3 whitespace-pre-line max-h-56 overflow-y-auto">
                             {version.script}
                           </div>
                         </div>
