@@ -86,6 +86,12 @@ interface PublishingStrategy {
   pro_tips: string[];
 }
 
+interface TopicExplanation {
+  introduction: string;
+  key_points: { heading: string; detail: string }[];
+  conclusion: string;
+}
+
 export default function InstagramContentStudio() {
   const [step, setStep] = useState(1);
   const [selectedTopic, setSelectedTopic] = useState<TrendingTopic | null>(null);
