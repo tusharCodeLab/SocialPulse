@@ -41,7 +41,7 @@ export function DashboardLayout() {
       {/* Mobile sidebar sheet */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="p-0 w-[280px] border-r border-sidebar-border">
-          <VisuallyHidden><SheetTitle>Navigation</SheetTitle></VisuallyHidden>
+          <SheetTitle className="sr-only">Navigation</SheetTitle>
           <AppSidebar variant="sheet" onNavigate={() => setMobileOpen(false)} />
         </SheetContent>
       </Sheet>
