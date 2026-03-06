@@ -1,20 +1,31 @@
 
 
-## Remove Generate Button & Ensure Real Timestamps
+## Add Average View Duration Chart to YouTube Posts Analysis
 
-### Changes
+### Problem
+The `posts` table has no `duration_seconds` column, and the `fetch-youtube` edge function already fetches `contentDetails` (which includes ISO 8601 duration like `PT4M13S`) but doesn't store it.
 
-#### 1. `src/components/dashboard/ActivityFeed.tsx`
-- Remove the `onGenerateInsights` and `isGenerating` props entirely
-- Remove the "Generate" button from the header (lines 138-148)
-- Remove the "Generate Insights" button from the empty state (lines 263-273)
-- Keep the empty state but without the generate button — just show "No insights yet"
-- Timestamps already use `formatDistanceToNow(new Date(insight.created_at), { addSuffix: true })` which correctly shows real relative time (e.g. "27 days ago"). This is accurate based on the `created_at` dates stored in the database.
+### Plan
 
-#### 2. `src/pages/Dashboard.tsx`
-- Remove the `handleGenerateInsights` function and `isGenerating` state
-- Remove the `onGenerateInsights` and `isGenerating` props passed to `ActivityFeed`
+#### 1. Database Migration
+Add a `duration_seconds` integer column to the `posts` table (nullable, default null). Only YouTube videos will populate this.
 
-### Result
-Clean activity feed showing only real insights with accurate relative timestamps, no generate functionality.
+```sql
+ALTER TABLE public.posts ADD COLUMN duration_seconds integer;
+```
+
+#### 2. Update `fetch-youtube` Edge Function
+- Parse the ISO 8601 duration from `v.contentDetails.duration` (e.g. `PT4M13S` → 253 seconds)
+- Store it in the new `duration_seconds` field during post upsert
+
+#### 3. Add Chart to `src/pages/YouTubePostsAnalysis.tsx`
+- Compute average view duration per video from `duration_seconds`
+- Add a new `AreaChart` or `BarChart` showing duration per video (formatted as `MM:SS`)
+- Place it in the charts grid alongside existing charts
+- Include proper empty state handling
+
+### Files Modified
+- `posts` table — new column via migration
+- `supabase/functions/fetch-youtube/index.ts` — parse & store duration
+- `src/pages/YouTubePostsAnalysis.tsx` — new duration chart
 
