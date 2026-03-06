@@ -201,7 +201,7 @@ export default function InstagramOverview() {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-5 rounded-xl border border-border/60 bg-card p-5" style={{ boxShadow: 'var(--shadow-card)' }}>
             <div className="flex items-center gap-2 mb-1"><ThumbsUp className="h-4 w-4 text-primary" /><h3 className="text-sm font-semibold text-foreground">Likes per Post</h3></div>
             <p className="text-[10px] text-muted-foreground mb-4">Like counts across posts</p>
-            <div className="h-[220px]">
+            <div className="h-[180px] sm:h-[220px]">
               {hasData ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={postsTrend}>
