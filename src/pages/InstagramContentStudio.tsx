@@ -577,38 +577,30 @@ export default function InstagramContentStudio() {
                       <Lightbulb className="h-4 w-4 text-primary" />
                       <span className="text-xs font-semibold text-primary uppercase tracking-wider">Topic Deep-Dive</span>
                     </div>
-                    
-                    {/* Introduction */}
-                    <p className="text-sm text-foreground/90 leading-relaxed">
-                      {topicExplanation.introduction}
-                    </p>
-                    
-                    {/* Key Points */}
-                    <div className="space-y-2.5 pl-1">
-                      {topicExplanation.key_points.map((point, i) => (
-                        <div key={i} className="flex gap-3">
-                          <div className="flex-shrink-0 mt-0.5">
-                            <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-[10px] font-bold text-primary">{i + 1}</span>
+                    <ExpandableText maxHeight={160}>
+                      <p className="text-sm text-foreground/90 leading-relaxed">{topicExplanation.introduction}</p>
+                      <div className="space-y-2.5 pl-1 mt-3">
+                        {topicExplanation.key_points.map((point, i) => (
+                          <div key={i} className="flex gap-3">
+                            <div className="flex-shrink-0 mt-0.5">
+                              <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center">
+                                <span className="text-[10px] font-bold text-primary">{i + 1}</span>
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-sm font-semibold text-foreground">{point.heading}: </span>
+                              <span className="text-sm text-muted-foreground leading-relaxed">{point.detail}</span>
                             </div>
                           </div>
-                          <div>
-                            <span className="text-sm font-semibold text-foreground">{point.heading}: </span>
-                            <span className="text-sm text-muted-foreground leading-relaxed">{point.detail}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    {/* Conclusion */}
-                    <div className="border-t border-border/40 pt-3 mt-1">
-                      <div className="flex items-start gap-2">
-                        <Star className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
-                        <p className="text-sm text-foreground/80 leading-relaxed italic">
-                          {topicExplanation.conclusion}
-                        </p>
+                        ))}
                       </div>
-                    </div>
+                      <div className="border-t border-border/40 pt-3 mt-3">
+                        <div className="flex items-start gap-2">
+                          <Star className="h-3.5 w-3.5 text-primary mt-0.5 flex-shrink-0" />
+                          <p className="text-sm text-foreground/80 leading-relaxed italic">{topicExplanation.conclusion}</p>
+                        </div>
+                      </div>
+                    </ExpandableText>
                   </div>
                 )}
                 
