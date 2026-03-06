@@ -98,6 +98,9 @@ export default function InstagramContentStudio() {
   const [loadingStrategy, setLoadingStrategy] = useState(false);
   const [contentIdeas, setContentIdeas] = useState<ContentIdeasResult | null>(null);
   const [loadingIdeas, setLoadingIdeas] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [trendingWorldTopics, setTrendingWorldTopics] = useState<TrendingWorldTopic[]>([]);
+  const [loadingTrending, setLoadingTrending] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
