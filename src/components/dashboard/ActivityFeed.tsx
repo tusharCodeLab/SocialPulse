@@ -22,8 +22,6 @@ interface Insight {
 
 interface ActivityFeedProps {
   insights: Insight[];
-  onGenerateInsights?: () => void;
-  isGenerating?: boolean;
 }
 
 const TYPE_CONFIG: Record<string, { icon: any; color: string; label: string }> = {
@@ -76,7 +74,7 @@ function groupByDate(insights: Insight[]) {
   return groups;
 }
 
-export function ActivityFeed({ insights, onGenerateInsights, isGenerating }: ActivityFeedProps) {
+export function ActivityFeed({ insights }: ActivityFeedProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(false);
@@ -133,17 +131,6 @@ export function ActivityFeed({ insights, onGenerateInsights, isGenerating }: Act
               >
                 <CheckCheck className="h-3 w-3" />
                 {markingAll ? 'Marking...' : 'Mark all read'}
-              </Button>
-            )}
-            {onGenerateInsights && (
-              <Button
-                variant="outline" size="sm"
-                className="h-7 px-2.5 text-[10px] gap-1"
-                onClick={onGenerateInsights}
-                disabled={isGenerating}
-              >
-                <Sparkles className={cn("h-3 w-3", isGenerating && "animate-spin")} />
-                {isGenerating ? 'Generating...' : 'Generate'}
               </Button>
             )}
           </div>
@@ -260,17 +247,6 @@ export function ActivityFeed({ insights, onGenerateInsights, isGenerating }: Act
               <p className="text-xs font-medium text-muted-foreground">No insights yet</p>
               <p className="text-[10px] text-muted-foreground/60 mt-0.5">Generate AI-powered insights from your analytics data</p>
             </div>
-            {onGenerateInsights && (
-              <Button
-                variant="outline" size="sm"
-                className="h-8 px-4 text-xs gap-1.5"
-                onClick={onGenerateInsights}
-                disabled={isGenerating}
-              >
-                <Sparkles className={cn("h-3.5 w-3.5", isGenerating && "animate-spin")} />
-                {isGenerating ? 'Generating...' : 'Generate Insights'}
-              </Button>
-            )}
           </div>
         )}
       </div>

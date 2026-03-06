@@ -28,7 +28,7 @@ import { TopPostsTable } from '@/components/dashboard/TopPostsTable';
 import { SentimentPanel } from '@/components/dashboard/SentimentPanel';
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed';
 import { RefreshCw } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+
 
 /* ── Constants ── */
 const PLATFORM_CONFIG = {
@@ -118,21 +118,8 @@ export default function Dashboard() {
   const { data: topPosts } = useTopContentByReach();
   const { data: insights } = useCrossPlatformInsights();
   const [period, setPeriod] = useState<'7d' | '14d' | '30d' | 'all'>('all');
-  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false);
 
-  const handleGenerateInsights = async () => {
-    setIsGeneratingInsights(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-insights');
-      if (error) throw error;
-      toast({ title: 'Insights generated', description: `${data?.count || 0} new insights created.` });
-      queryClient.invalidateQueries({ queryKey: ['cross-platform-insights'] });
-    } catch (err: any) {
-      toast({ title: 'Failed to generate insights', description: err.message || 'Please try again.', variant: 'destructive' });
-    } finally {
-      setIsGeneratingInsights(false);
-    }
-  };
+
 
   const platformMap = (platformMetrics || []).reduce((acc, p) => { acc[p.platform] = p; return acc; }, {} as Record<string, any>);
   const avgEngagement = platformMetrics?.length
@@ -354,7 +341,7 @@ export default function Dashboard() {
       </motion.div>
 
       {/* ─── Section 5: Activity Feed ─── */}
-      <ActivityFeed insights={insights || []} onGenerateInsights={handleGenerateInsights} isGenerating={isGeneratingInsights} />
+      <ActivityFeed insights={insights || []} />
     </div>
   );
 }
