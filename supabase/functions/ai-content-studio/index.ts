@@ -225,7 +225,7 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
-    const { action, topic, platform = "instagram", post } = body;
+    const { action, topic, platform = "instagram", post, format } = body;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -256,7 +256,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      response = await handleGenerateVersions(topic, platform, LOVABLE_API_KEY);
+      response = await handleGenerateVersions(topic, platform, LOVABLE_API_KEY, format);
     }
 
     if (!response.ok) {

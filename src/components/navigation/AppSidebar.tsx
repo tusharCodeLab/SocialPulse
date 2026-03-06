@@ -68,6 +68,7 @@ const platformGroups: PlatformGroup[] = [
       { to: '/youtube-posts', icon: FileText, label: 'Posts Analysis' },
       { to: '/youtube-audience', icon: Users, label: 'Audience Insights' },
       { to: '/youtube-sentiment', icon: Heart, label: 'Sentiment' },
+      { to: '/youtube-content-studio', icon: Sparkles, label: 'Content Studio' },
     ],
   },
   {

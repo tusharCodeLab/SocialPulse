@@ -72,6 +72,7 @@ const App = () => {
                 <Route path="/youtube-audience" element={<YouTubeAudience />} />
                 <Route path="/youtube-sentiment" element={<YouTubeSentiment />} />
                 <Route path="/youtube-trends" element={<YouTubeTrends />} />
+                <Route path="/youtube-content-studio" element={<YouTubeContentStudio />} />
                 <Route path="/facebook-analytics" element={<FacebookAnalytics />} />
                 <Route path="/facebook-posts" element={<FacebookPosts />} />
                 <Route path="/facebook-audience" element={<FacebookAudience />} />
