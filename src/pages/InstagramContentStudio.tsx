@@ -128,12 +128,35 @@ export default function InstagramContentStudio() {
     },
   });
 
-  // Auto-fetch publishing strategy when entering step 3
+  // Auto-fetch publishing strategy and topic explanation when entering step 3
   useEffect(() => {
     if (step === 3 && selectedVersion && !strategy && !loadingStrategy) {
       fetchPublishingStrategy();
     }
+    if (step === 3 && selectedTopic && !topicExplanation && !loadingExplanation) {
+      fetchTopicExplanation();
+    }
   }, [step]);
+
+  const fetchTopicExplanation = async () => {
+    if (!selectedTopic) return;
+    setLoadingExplanation(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-content-studio', {
+        body: {
+          action: 'topic-explanation',
+          topic: selectedTopic.title,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      setTopicExplanation(data as TopicExplanation);
+    } catch (e: any) {
+      toast({ title: 'Explanation generation failed', description: e.message, variant: 'destructive' });
+    } finally {
+      setLoadingExplanation(false);
+    }
+  };
 
   const fetchPublishingStrategy = async () => {
     if (!selectedVersion) return;
