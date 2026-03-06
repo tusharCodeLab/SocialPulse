@@ -19,6 +19,7 @@ import Sentiment from "./pages/Sentiment";
 import Trends from "./pages/Trends";
 import InstagramBestTime from "./pages/InstagramBestTime";
 import InstagramContentStudio from "./pages/InstagramContentStudio";
+import YouTubeContentStudio from "./pages/YouTubeContentStudio";
 
 import YouTubeAnalytics from "./pages/YouTubeAnalytics";
 import YouTubePostsAnalysis from "./pages/YouTubePostsAnalysis";
