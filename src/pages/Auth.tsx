@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { LineChart, ArrowLeft, Mail, Lock, User, Loader2, Users, TrendingUp, Shield, Sparkles } from "lucide-react";
+import { LineChart, ArrowLeft, Mail, Lock, User, Loader2, Users, TrendingUp, Shield, Sparkles, Zap, Copy, Check as CheckIcon, X } from "lucide-react";
 import { z } from "zod";
 
-import { Check, X } from "lucide-react";
+const DEMO_EMAIL = "tushar@gmail.com";
+const DEMO_PASSWORD = "123456";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(8, "Password must be at least 8 characters");
@@ -55,7 +56,7 @@ function PasswordStrength({ password }: { password: string }) {
           const met = req.test(password);
           return (
             <li key={req.label} className={`flex items-center gap-1.5 text-[11px] transition-colors ${met ? "text-chart-sentiment-positive" : "text-muted-foreground"}`}>
-              {met ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+              {met ? <CheckIcon className="w-3 h-3" /> : <X className="w-3 h-3" />}
               {req.label}
             </li>
           );
@@ -73,6 +74,7 @@ const Auth = () => {
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [demoCopied, setDemoCopied] = useState<"email" | "password" | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, signIn, signUp } = useAuth();
@@ -98,6 +100,18 @@ const Auth = () => {
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleDemoLogin = () => {
+    setEmail(DEMO_EMAIL);
+    setPassword(DEMO_PASSWORD);
+    setErrors({});
+  };
+
+  const handleCopy = (type: "email" | "password") => {
+    navigator.clipboard.writeText(type === "email" ? DEMO_EMAIL : DEMO_PASSWORD);
+    setDemoCopied(type);
+    setTimeout(() => setDemoCopied(null), 2000);
   };
 
   const handleAuth = async (e: React.FormEvent) => {
@@ -170,6 +184,59 @@ const Auth = () => {
               }
             </p>
           </div>
+
+          {!isSignUp && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mb-6 rounded-xl border border-primary/20 bg-primary/5 overflow-hidden"
+            >
+              <div className="flex items-center justify-between px-4 py-2.5 border-b border-primary/15 bg-primary/10">
+                <div className="flex items-center gap-2">
+                  <Zap className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-xs font-semibold text-primary uppercase tracking-wider">Demo Access</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleDemoLogin}
+                  className="text-xs font-medium text-primary hover:text-primary/80 bg-primary/10 hover:bg-primary/20 px-3 py-1 rounded-md transition-colors"
+                >
+                  Auto-fill & Try
+                </button>
+              </div>
+              <div className="px-4 py-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Email</p>
+                    <p className="text-sm font-mono text-foreground">{DEMO_EMAIL}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy("email")}
+                    className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                    title="Copy email"
+                  >
+                    {demoCopied === "email" ? <CheckIcon className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Password</p>
+                    <p className="text-sm font-mono text-foreground">{DEMO_PASSWORD}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCopy("password")}
+                    className="p-1.5 rounded-md hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                    title="Copy password"
+                  >
+                    {demoCopied === "password" ? <CheckIcon className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           <form onSubmit={handleAuth} className="space-y-5">
             {isSignUp && (

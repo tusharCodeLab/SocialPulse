@@ -70,17 +70,17 @@ Account Performance Data (last 2 weeks):
 - Top post: ${posts[0] ? `"${(posts[0].content || "").slice(0, 80)}" - ${posts[0].likes_count} likes, ${posts[0].reach} reach` : "N/A"}
 `;
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GEMINI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: "You are a premium social media performance analyst. Write concise, data-driven executive summaries." },
           { role: "user", content: `Generate a professional weekly performance digest based on this data. Be specific with numbers.\n\n${dataSummary}` },

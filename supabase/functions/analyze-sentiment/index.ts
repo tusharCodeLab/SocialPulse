@@ -12,8 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -72,15 +72,15 @@ serve(async (req) => {
     const commentsText = validatedComments.map((c, i: number) => `${i + 1}. "${c.content}"`).join("\n");
     const prompt = `Analyze the sentiment of each social media comment below. For each, classify as positive, negative, or neutral with a confidence score 0-1.\n\nComments:\n${commentsText}`;
 
-    // Call Lovable AI Gateway
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Call Google Gemini Gateway
+    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GEMINI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: "You are a sentiment analysis tool. Classify social media comments accurately." },
           { role: "user", content: prompt },
@@ -118,7 +118,7 @@ serve(async (req) => {
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error("Lovable AI error:", aiResponse.status, errorText);
+      console.error("Google Gemini error:", aiResponse.status, errorText);
       if (aiResponse.status === 429) {
         return new Response(JSON.stringify({ error: "AI rate limit reached. Please try again in a moment." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },

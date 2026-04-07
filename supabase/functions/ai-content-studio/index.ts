@@ -56,14 +56,14 @@ For each version provide:
 Version A should be more professional/educational.
 Version B should be more casual/entertaining.`;
 
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       messages: [
         { role: "system", content: "You are a social media content expert. Always respond using the provided tool." },
         { role: "user", content: prompt },
@@ -119,14 +119,14 @@ Analyze this content and provide:
 3. audience_insights: 3-4 insights about when the target audience for this content type is most active, their behavior patterns, and demographics likely to engage
 4. pro_tips: 4-5 actionable tips specific to this content for maximizing reach and engagement on ${platform}`;
 
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       messages: [
         { role: "system", content: "You are a social media publishing strategist. Always respond using the provided tool." },
         { role: "user", content: prompt },
@@ -200,14 +200,14 @@ Provide:
 2. key_points: An array of 3-5 important points. Each point should have a "heading" (short label) and "detail" (1-2 sentence explanation). Cover the core concepts, recent developments, and why people care.
 3. conclusion: A 2-3 sentence wrap-up summarizing the creator's takeaway — what angle they should consider and what makes this topic compelling for content.`;
 
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const response = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
+      model: "gemini-2.5-flash",
       messages: [
         { role: "system", content: "You are a content research assistant. Always respond using the provided tool." },
         { role: "user", content: prompt },
@@ -256,8 +256,8 @@ serve(async (req) => {
     const body = await req.json();
     const { action, topic, platform = "instagram", post, format } = body;
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
     let response: Response;
 
@@ -268,7 +268,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      response = await handlePublishingStrategy(post, platform, LOVABLE_API_KEY);
+      response = await handlePublishingStrategy(post, platform, GEMINI_API_KEY);
     } else if (action === "topic-explanation") {
       if (!topic) {
         return new Response(JSON.stringify({ error: "topic is required" }), {
@@ -276,7 +276,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      response = await handleTopicExplanation(topic, LOVABLE_API_KEY);
+      response = await handleTopicExplanation(topic, GEMINI_API_KEY);
     } else {
       // Default: generate versions
       if (!topic) {
@@ -285,7 +285,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      response = await handleGenerateVersions(topic, platform, LOVABLE_API_KEY, format);
+      response = await handleGenerateVersions(topic, platform, GEMINI_API_KEY, format);
     }
 
     if (!response.ok) {

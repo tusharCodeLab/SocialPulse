@@ -139,11 +139,11 @@ export function AppSidebar({ variant = 'fixed', onNavigate }: AppSidebarProps) {
           <motion.div
             whileHover={{ rotate: 180, scale: 1.1 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center flex-shrink-0 shadow-lg"
-            style={{ boxShadow: '0 4px 20px -4px hsl(var(--primary) / 0.5)' }}
+            className="relative w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, #34D399 0%, #0D9488 100%)', boxShadow: '0 4px 20px -4px rgba(13, 148, 136, 0.6)' }}
           >
             <TrendingUp className="h-5 w-5 text-primary-foreground" />
-            <div className="absolute inset-0 rounded-xl bg-primary/20 blur-xl" />
+            <div className="absolute inset-0 rounded-xl bg-teal-400/20 blur-xl" />
           </motion.div>
           <AnimatePresence mode="wait">
             {!isCollapsed && (
@@ -153,7 +153,7 @@ export function AppSidebar({ variant = 'fixed', onNavigate }: AppSidebarProps) {
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                <h1 className="font-bold text-foreground text-lg tracking-tight">Analytics</h1>
+                <h1 className="font-bold text-foreground text-lg tracking-tight">SocialPulse</h1>
                 <p className="text-xs text-muted-foreground">Social Dashboard</p>
               </motion.div>
             )}

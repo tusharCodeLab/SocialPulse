@@ -50,17 +50,17 @@ RECENT TOP POSTS:
 ${posts.slice(0, 5).map((p, i) => `${i + 1}. Type: ${p.post_type || "post"} | Eng: ${(p.engagement_rate || 0).toFixed(1)}% | "${(p.content || "").slice(0, 100)}"`).join("\n") || "No posts yet"}
 `;
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GEMINI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: "You are an elite social media content strategist. Generate data-driven content ideas based on the user's actual performance trends and posting history." },
           { role: "user", content: `Based on these trends and performance data, generate 5 strategic content ideas that capitalize on what's working and address weaknesses.\n\n${context}` },

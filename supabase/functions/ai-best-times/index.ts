@@ -81,9 +81,9 @@ serve(async (req) => {
       .sort((a, b) => b.avg_engagement - a.avg_engagement)
       .slice(0, 15);
 
-    // Call Lovable AI for insights
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    // Call Google Gemini for insights
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY not configured");
 
     const prompt = `You are an Instagram growth strategist. Analyze this engagement data and provide actionable posting schedule recommendations.
 
@@ -106,14 +106,14 @@ Return a JSON object with this exact structure:
 
 Provide exactly 5 top_slots ranked by importance, and 3 actionable tips. Hours are in UTC.`;
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiResponse = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${GEMINI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gemini-2.5-flash",
         messages: [
           { role: "system", content: "You are an expert social media strategist. Always respond with valid JSON only, no markdown." },
           { role: "user", content: prompt },
