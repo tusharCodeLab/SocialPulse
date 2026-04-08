@@ -2,7 +2,7 @@
 
 ## Project info
 
-**URL**: https://custom.dev/projects/REPLACE_WITH_PROJECT_ID
+**URL**: https://social-pulse-alpha.vercel.app/
 
 ## How can I edit this code?
 
