@@ -1,4 +1,4 @@
-project_id = "pbgqkkcvkczlxexuifuc"
+project_id = "jygjtuferjrapqgmhthn"
 
 [functions.analyze-sentiment]
 verify_jwt = false

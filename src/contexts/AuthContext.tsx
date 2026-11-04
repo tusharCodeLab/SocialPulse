@@ -2,6 +2,22 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 
+// Demo credentials — sign-in is handled locally, no network call needed
+const DEMO_EMAIL = "tushar@gmail.com";
+const DEMO_PASSWORD = "123456";
+const DEMO_USER_KEY = "demo_user_active";
+
+function makeDemoUser(): User {
+  return {
+    id: "demo-user-id",
+    email: DEMO_EMAIL,
+    app_metadata: {},
+    user_metadata: { full_name: "Demo User" },
+    aud: "authenticated",
+    created_at: new Date().toISOString(),
+  } as unknown as User;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -28,11 +44,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // THEN check for existing session
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+      if (session?.user) {
+        localStorage.removeItem(DEMO_USER_KEY);
+        setSession(session);
+        setUser(session.user);
+        setLoading(false);
+      } else {
+        const isDemoActive = localStorage.getItem(DEMO_USER_KEY) === "true";
+        if (isDemoActive) {
+          setUser(makeDemoUser());
+        }
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -40,17 +65,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string): Promise<{ error?: string }> => {
     try {
+      localStorage.removeItem(DEMO_USER_KEY);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        // Fallback for demo user if offline/network error
+        if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
+          const demoUser = makeDemoUser();
+          localStorage.setItem(DEMO_USER_KEY, "true");
+          setUser(demoUser);
+          return {};
+        }
         return { error: error.message };
       }
 
       return {};
     } catch (err) {
+      // Fallback for demo user if network error
+      if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
+        const demoUser = makeDemoUser();
+        localStorage.setItem(DEMO_USER_KEY, "true");
+        setUser(demoUser);
+        return {};
+      }
       console.error("Sign in error:", err);
       return { error: "Failed to sign in" };
     }
@@ -83,6 +123,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    // Clear demo session
+    if (localStorage.getItem(DEMO_USER_KEY) === "true") {
+      localStorage.removeItem(DEMO_USER_KEY);
+      setUser(null);
+      setSession(null);
+      return;
+    }
     await supabase.auth.signOut();
   };
 

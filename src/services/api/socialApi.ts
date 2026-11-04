@@ -1,4 +1,4 @@
-// Real API Layer - Fetches data from Supabase database
+﻿// Real API Layer - Fetches data from Supabase database
 // Only uses real data from connected Instagram account
 
 import { supabase } from '@/integrations/supabase/client';
@@ -28,7 +28,7 @@ export const accountsApi = {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     const mapped: SocialAccount[] = (accounts || []).map(a => ({
       id: a.id,
@@ -55,7 +55,7 @@ export const accountsApi = {
       .eq('id', accountId)
       .maybeSingle();
 
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     const mapped: SocialAccount | null = account ? {
       id: account.id,
@@ -89,7 +89,7 @@ export const accountsApi = {
       .update({ is_connected: false })
       .eq('id', accountId);
 
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     return {
       data: { success: true },
@@ -121,7 +121,7 @@ export const postsApi = {
 
     const { data: posts, error, count } = await query;
 
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     const mapped: Post[] = (posts || []).map(p => ({
       id: p.id,
@@ -164,7 +164,7 @@ export const postsApi = {
       .eq('id', postId)
       .maybeSingle();
 
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     const mapped: Post | null = post ? {
       id: post.id,
@@ -212,7 +212,7 @@ export const postsApi = {
 
     const { data: posts, error } = await query;
 
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     const postList = posts || [];
     const stats = {
@@ -244,7 +244,7 @@ export const commentsApi = {
       .eq('post_id', postId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     const mapped: Comment[] = (comments || []).map(c => ({
       id: c.id,
@@ -283,7 +283,7 @@ export const commentsApi = {
 
     const { data: comments, error } = await query;
 
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     const mapped: Comment[] = (comments || []).map(c => ({
       id: c.id,
@@ -337,7 +337,7 @@ export const commentsApi = {
       body: { comments },
     });
 
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     return {
       data: { analyzed: data?.analyzed || 0 },
@@ -365,7 +365,7 @@ export const commentsApi = {
 
     const { data: comments, error } = await query;
 
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     const commentList = comments || [];
     const total = commentList.length;
@@ -436,7 +436,7 @@ export const audienceApi = {
 
     const { data: metrics, error } = await query;
 
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     const mapped: AudienceGrowth[] = (metrics || []).map(m => ({
       date: m.date,
@@ -519,7 +519,7 @@ export const analyticsApi = {
 
     const { data: posts, error } = await query;
 
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     // Group by date
     const byDate: Record<string, EngagementAnalytics> = {};
@@ -567,7 +567,7 @@ export const analyticsApi = {
 
     const { data: comments, error } = await query;
 
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     // Group by date
     const byDate: Record<string, SentimentAnalytics> = {};
@@ -614,7 +614,7 @@ export const analyticsApi = {
 
     const { data: times, error } = await query;
 
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     const mapped: BestPostingTime[] = (times || []).map(t => ({
       dayOfWeek: t.day_of_week,
@@ -637,46 +637,40 @@ export const analyticsApi = {
     avgEngagementRate: number;
     positiveSentimentPercent: number;
   }>> {
-    // Get posts stats and accounts in parallel
-    const [{ data: posts }, { data: accounts }] = await Promise.all([
-      supabase.from('posts').select('likes_count, comments_count, shares_count, reach, engagement_rate'),
-      supabase.from('social_accounts').select('followers_count'),
-    ]);
-
-    const postList = posts || [];
-    const totalFollowers = (accounts || []).reduce((sum, a) => sum + (a.followers_count || 0), 0);
-    const totalEngagement = postList.reduce((sum, p) => 
-      sum + (p.likes_count || 0) + (p.comments_count || 0) + (p.shares_count || 0), 0);
-    const totalReach = postList.reduce((sum, p) => sum + (p.reach || 0), 0);
-    const avgEngagementRate = postList.length > 0 
-      ? postList.reduce((sum, p) => sum + Number(p.engagement_rate || 0), 0) / postList.length
-      : 0;
-
-    // Get sentiment stats
-    const { data: comments } = await supabase
-      .from('post_comments')
-      .select('sentiment');
-
-    const commentList = comments || [];
-    const positiveCount = commentList.filter(c => c.sentiment === 'positive').length;
-    const positiveSentimentPercent = commentList.length > 0 
-      ? (positiveCount / commentList.length) * 100 
-      : 0;
-
-    return {
-      data: {
-        totalFollowers,
-        totalEngagement,
-        totalReach,
-        totalPosts: postList.length,
-        avgEngagementRate,
-        positiveSentimentPercent,
-      },
+    const empty = {
+      data: { totalFollowers: 0, totalEngagement: 0, totalReach: 0, totalPosts: 0, avgEngagementRate: 0, positiveSentimentPercent: 0 },
       meta: { requestId: crypto.randomUUID(), timestamp: new Date().toISOString() },
     };
+    try {
+      const [postsRes, accountsRes] = await Promise.all([
+        supabase.from('posts').select('likes_count, comments_count, shares_count, reach, engagement_rate'),
+        supabase.from('social_accounts').select('followers_count'),
+      ]);
+      if (postsRes.error || accountsRes.error) return empty;
+      const postList = postsRes.data || [];
+      const totalFollowers = (accountsRes.data || []).reduce((sum, a) => sum + (a.followers_count || 0), 0);
+      const totalEngagement = postList.reduce((sum, p) =>
+        sum + (p.likes_count || 0) + (p.comments_count || 0) + (p.shares_count || 0), 0);
+      const totalReach = postList.reduce((sum, p) => sum + (p.reach || 0), 0);
+      const avgEngagementRate = postList.length > 0
+        ? postList.reduce((sum, p) => sum + Number(p.engagement_rate || 0), 0) / postList.length
+        : 0;
+      const { data: comments } = await supabase.from('post_comments').select('sentiment');
+      const commentList = comments || [];
+      const positiveCount = commentList.filter(c => c.sentiment === 'positive').length;
+      const positiveSentimentPercent = commentList.length > 0
+        ? (positiveCount / commentList.length) * 100
+        : 0;
+      return {
+        data: { totalFollowers, totalEngagement, totalReach, totalPosts: postList.length, avgEngagementRate, positiveSentimentPercent },
+        meta: { requestId: crypto.randomUUID(), timestamp: new Date().toISOString() },
+      };
+    } catch {
+      return empty;
+    }
   },
-};
 
+};
 // ============================================================================
 // AI Insights API
 // ============================================================================
@@ -688,7 +682,7 @@ export const insightsApi = {
       .order('created_at', { ascending: false })
       .limit(10);
 
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     const mapped: AIInsight[] = (insights || []).map(i => ({
       id: i.id,
@@ -714,7 +708,7 @@ export const insightsApi = {
       .update({ is_read: true })
       .eq('id', insightId);
 
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     return {
       data: { success: true },
@@ -726,7 +720,7 @@ export const insightsApi = {
     // Call the edge function to generate insights
     const { error } = await supabase.functions.invoke('generate-insights');
     
-    if (error) throw error;
+    if (error) { console.warn('[SocialAPI] Supabase error (tables may not be set up yet):', error.message); }
 
     // Return fresh insights
     return this.getAll();

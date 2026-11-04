@@ -42,14 +42,20 @@ export default function Settings() {
   const { toast } = useToast();
   const { user, signOut } = useAuth();
 
+  const isDemoUser = false;
+
   const handleConnectInstagram = async () => {
     if (!user) { toast({ title: 'Please sign in', description: 'You need to be signed in to connect your Instagram account.', variant: 'destructive' }); return; }
+    if (isDemoUser) {
+      toast({ title: 'Demo mode \u2014 sign in required', description: 'Create a real account to sync Instagram data. Edge Functions require Supabase auth.', variant: 'destructive' });
+      return;
+    }
     setIsConnectingInstagram(true);
     setInstagramSyncResult(null);
     try {
       const { data, error } = await supabase.functions.invoke('fetch-instagram');
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (error) { const m = error.message || ''; throw new Error(m.includes('Edge Function') || m.includes('Failed to send') ? 'Edge Functions not deployed yet. Run: supabase functions deploy fetch-instagram' : m || 'Failed to connect Instagram'); }
+      if (data?.error) throw new Error(data.error);
       setInstagramSyncResult({ posts: data.imported?.posts || 0, comments: data.imported?.comments || 0, username: data.account?.username || 'Unknown' });
       if (!connectedPlatforms.includes('instagram')) togglePlatform('instagram');
       toast({ title: 'Instagram connected!', description: `Imported ${data.imported?.posts || 0} posts and ${data.imported?.comments || 0} comments from @${data.account?.username}` });
@@ -60,12 +66,15 @@ export default function Settings() {
 
   const handleConnectYouTube = async () => {
     if (!user) { toast({ title: 'Please sign in', variant: 'destructive' }); return; }
-    if (!ytHandle.trim()) { toast({ title: 'Enter a channel identifier', description: 'Use @handle, channel ID (UC...), username, or a YouTube channel URL.', variant: 'destructive' }); return; }
+    if (isDemoUser) {
+      toast({ title: 'Demo mode \u2014 sign in required', description: 'Create a real account to sync YouTube data. Edge Functions require Supabase auth.', variant: 'destructive' });
+      return;
+    }
     setIsConnectingYouTube(true);
     setYtSyncResult(null);
     try {
       const { data, error } = await supabase.functions.invoke('fetch-youtube', { body: { channel_handle: ytHandle.trim() } });
-      if (error) throw error;
+      if (error) { const m = error.message || ''; throw new Error(m.includes('Edge Function') || m.includes('Failed to send') ? 'Edge Functions not deployed yet. Run: supabase functions deploy fetch-youtube' : m || 'Failed to connect YouTube'); }
       if (data.error) throw new Error(data.error);
       setYtSyncResult({ videos: data.imported?.videos || 0, comments: data.imported?.comments || 0, title: data.channel?.title || ytHandle });
       if (!connectedPlatforms.includes('youtube')) togglePlatform('youtube');
@@ -77,12 +86,16 @@ export default function Settings() {
 
   const handleConnectFacebook = async () => {
     if (!user) { toast({ title: 'Please sign in', variant: 'destructive' }); return; }
+    if (isDemoUser) {
+      toast({ title: 'Demo mode \u2014 sign in required', description: 'Create a real account to sync Facebook data. Edge Functions require Supabase auth.', variant: 'destructive' });
+      return;
+    }
     setIsConnectingFacebook(true);
     setFbSyncResult(null);
     try {
       const { data, error } = await supabase.functions.invoke('fetch-facebook');
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (error) { const m = error.message || ''; throw new Error(m.includes('Edge Function') || m.includes('Failed to send') ? 'Edge Functions not deployed yet. Run: supabase functions deploy fetch-facebook' : m || 'Failed to connect Facebook'); }
+      if (data?.error) throw new Error(data.error);
       setFbSyncResult({ posts: data.imported?.posts || 0, comments: data.imported?.comments || 0, pageName: data.page?.name || 'Facebook Page' });
       if (!connectedPlatforms.includes('facebook')) togglePlatform('facebook');
       toast({ title: 'Facebook connected!', description: `Imported ${data.imported?.posts || 0} posts and ${data.imported?.comments || 0} comments` });
