@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 
-// Demo credentials — sign-in is handled locally, no network call needed
+// Demo credentials
 const DEMO_EMAIL = "tushar@gmail.com";
 const DEMO_PASSWORD = "123456";
 const DEMO_USER_KEY = "demo_user_active";
@@ -37,24 +37,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
+      (_event, currentSession) => {
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
         setLoading(false);
       }
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
+    supabase.auth.getSession().then(async ({ data: { session: existingSession } }) => {
+      if (existingSession?.user) {
         localStorage.removeItem(DEMO_USER_KEY);
-        setSession(session);
-        setUser(session.user);
+        setSession(existingSession);
+        setUser(existingSession.user);
         setLoading(false);
       } else {
         const isDemoActive = localStorage.getItem(DEMO_USER_KEY) === "true";
         if (isDemoActive) {
-          setUser(makeDemoUser());
+          // Upgrade demo to real Supabase session automatically
+          try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+              email: DEMO_EMAIL,
+              password: DEMO_PASSWORD,
+            });
+            if (!error && data?.session) {
+              localStorage.removeItem(DEMO_USER_KEY);
+              setSession(data.session);
+              setUser(data.user);
+            } else {
+              setUser(makeDemoUser());
+            }
+          } catch {
+            setUser(makeDemoUser());
+          }
         }
         setLoading(false);
       }
@@ -66,7 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string): Promise<{ error?: string }> => {
     try {
       localStorage.removeItem(DEMO_USER_KEY);
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -80,6 +95,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return {};
         }
         return { error: error.message };
+      }
+
+      if (data?.session) {
+        setSession(data.session);
+        setUser(data.user);
       }
 
       return {};
@@ -123,13 +143,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    // Clear demo session
-    if (localStorage.getItem(DEMO_USER_KEY) === "true") {
-      localStorage.removeItem(DEMO_USER_KEY);
-      setUser(null);
-      setSession(null);
-      return;
-    }
+    localStorage.removeItem(DEMO_USER_KEY);
+    setUser(null);
+    setSession(null);
     await supabase.auth.signOut();
   };
 

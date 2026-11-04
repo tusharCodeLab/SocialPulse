@@ -26,6 +26,23 @@ const platforms = [
   { id: 'facebook', name: 'Facebook', icon: FacebookIcon, color: '', supported: true },
 ];
 
+async function extractFunctionError(error: any, defaultMsg: string): Promise<string> {
+  if (!error) return defaultMsg;
+  try {
+    if (error.context && typeof error.context.json === 'function') {
+      const body = await error.context.json();
+      if (body?.error) {
+        return body.hint ? `${body.error} (${body.hint})` : body.error;
+      }
+      if (body?.message) return body.message;
+    }
+  } catch {}
+  if (error.message && !error.message.includes('non-2xx')) {
+    return error.message;
+  }
+  return defaultMsg;
+}
+
 export default function Settings() {
   const { connectedPlatforms, togglePlatform, theme, setTheme } = useSettingsStore();
   const [isConnectingInstagram, setIsConnectingInstagram] = useState(false);
@@ -42,74 +59,133 @@ export default function Settings() {
   const { toast } = useToast();
   const { user, signOut } = useAuth();
 
-  const isDemoUser = false;
-
   const handleConnectInstagram = async () => {
-    if (!user) { toast({ title: 'Please sign in', description: 'You need to be signed in to connect your Instagram account.', variant: 'destructive' }); return; }
-    if (isDemoUser) {
-      toast({ title: 'Demo mode \u2014 sign in required', description: 'Create a real account to sync Instagram data. Edge Functions require Supabase auth.', variant: 'destructive' });
+    if (!user) {
+      toast({ title: 'Please sign in', description: 'You need to be signed in to connect your Instagram account.', variant: 'destructive' });
       return;
     }
     setIsConnectingInstagram(true);
     setInstagramSyncResult(null);
     try {
       const { data, error } = await supabase.functions.invoke('fetch-instagram');
-      if (error) { const m = error.message || ''; throw new Error(m.includes('Edge Function') || m.includes('Failed to send') ? 'Edge Functions not deployed yet. Run: supabase functions deploy fetch-instagram' : m || 'Failed to connect Instagram'); }
+      if (error) {
+        const msg = await extractFunctionError(error, 'Failed to connect Instagram');
+        throw new Error(msg);
+      }
       if (data?.error) throw new Error(data.error);
-      setInstagramSyncResult({ posts: data.imported?.posts || 0, comments: data.imported?.comments || 0, username: data.account?.username || 'Unknown' });
+      setInstagramSyncResult({
+        posts: data.imported?.posts || 0,
+        comments: data.imported?.comments || 0,
+        username: data.account?.username || 'Unknown',
+      });
       if (!connectedPlatforms.includes('instagram')) togglePlatform('instagram');
-      toast({ title: 'Instagram connected!', description: `Imported ${data.imported?.posts || 0} posts and ${data.imported?.comments || 0} comments from @${data.account?.username}` });
+      toast({
+        title: 'Instagram connected!',
+        description: `Imported ${data.imported?.posts || 0} posts and ${data.imported?.comments || 0} comments from @${data.account?.username}`,
+      });
     } catch (error) {
-      toast({ title: 'Connection failed', description: error instanceof Error ? error.message : 'Failed to connect Instagram', variant: 'destructive' });
-    } finally { setIsConnectingInstagram(false); }
+      toast({
+        title: 'Connection failed',
+        description: error instanceof Error ? error.message : 'Failed to connect Instagram',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsConnectingInstagram(false);
+    }
   };
 
   const handleConnectYouTube = async () => {
-    if (!user) { toast({ title: 'Please sign in', variant: 'destructive' }); return; }
-    if (isDemoUser) {
-      toast({ title: 'Demo mode \u2014 sign in required', description: 'Create a real account to sync YouTube data. Edge Functions require Supabase auth.', variant: 'destructive' });
+    if (!user) {
+      toast({ title: 'Please sign in', variant: 'destructive' });
+      return;
+    }
+    if (!ytHandle.trim()) {
+      toast({
+        title: 'Enter a channel identifier',
+        description: 'Use @handle, channel ID (UC...), username, or a YouTube channel URL.',
+        variant: 'destructive',
+      });
       return;
     }
     setIsConnectingYouTube(true);
     setYtSyncResult(null);
     try {
-      const { data, error } = await supabase.functions.invoke('fetch-youtube', { body: { channel_handle: ytHandle.trim() } });
-      if (error) { const m = error.message || ''; throw new Error(m.includes('Edge Function') || m.includes('Failed to send') ? 'Edge Functions not deployed yet. Run: supabase functions deploy fetch-youtube' : m || 'Failed to connect YouTube'); }
-      if (data.error) throw new Error(data.error);
-      setYtSyncResult({ videos: data.imported?.videos || 0, comments: data.imported?.comments || 0, title: data.channel?.title || ytHandle });
+      const { data, error } = await supabase.functions.invoke('fetch-youtube', {
+        body: { channel_handle: ytHandle.trim() },
+      });
+      if (error) {
+        const msg = await extractFunctionError(error, 'Failed to connect YouTube');
+        throw new Error(msg);
+      }
+      if (data?.error) throw new Error(data.error);
+      setYtSyncResult({
+        videos: data.imported?.videos || 0,
+        comments: data.imported?.comments || 0,
+        title: data.channel?.title || ytHandle,
+      });
       if (!connectedPlatforms.includes('youtube')) togglePlatform('youtube');
-      toast({ title: 'YouTube connected!', description: `Imported ${data.imported?.videos || 0} videos and ${data.imported?.comments || 0} comments` });
+      toast({
+        title: 'YouTube connected!',
+        description: `Imported ${data.imported?.videos || 0} videos and ${data.imported?.comments || 0} comments`,
+      });
     } catch (error) {
-      toast({ title: 'Connection failed', description: error instanceof Error ? error.message : 'Failed to connect YouTube', variant: 'destructive' });
-    } finally { setIsConnectingYouTube(false); }
+      toast({
+        title: 'Connection failed',
+        description: error instanceof Error ? error.message : 'Failed to connect YouTube',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsConnectingYouTube(false);
+    }
   };
 
   const handleConnectFacebook = async () => {
-    if (!user) { toast({ title: 'Please sign in', variant: 'destructive' }); return; }
-    if (isDemoUser) {
-      toast({ title: 'Demo mode \u2014 sign in required', description: 'Create a real account to sync Facebook data. Edge Functions require Supabase auth.', variant: 'destructive' });
+    if (!user) {
+      toast({ title: 'Please sign in', variant: 'destructive' });
       return;
     }
     setIsConnectingFacebook(true);
     setFbSyncResult(null);
     try {
       const { data, error } = await supabase.functions.invoke('fetch-facebook');
-      if (error) { const m = error.message || ''; throw new Error(m.includes('Edge Function') || m.includes('Failed to send') ? 'Edge Functions not deployed yet. Run: supabase functions deploy fetch-facebook' : m || 'Failed to connect Facebook'); }
+      if (error) {
+        const msg = await extractFunctionError(error, 'Failed to connect Facebook');
+        throw new Error(msg);
+      }
       if (data?.error) throw new Error(data.error);
-      setFbSyncResult({ posts: data.imported?.posts || 0, comments: data.imported?.comments || 0, pageName: data.page?.name || 'Facebook Page' });
+      setFbSyncResult({
+        posts: data.imported?.posts || 0,
+        comments: data.imported?.comments || 0,
+        pageName: data.page?.name || 'Facebook Page',
+      });
       if (!connectedPlatforms.includes('facebook')) togglePlatform('facebook');
-      toast({ title: 'Facebook connected!', description: `Imported ${data.imported?.posts || 0} posts and ${data.imported?.comments || 0} comments` });
+      toast({
+        title: 'Facebook connected!',
+        description: `Imported ${data.imported?.posts || 0} posts and ${data.imported?.comments || 0} comments`,
+      });
     } catch (error) {
-      toast({ title: 'Connection failed', description: error instanceof Error ? error.message : 'Failed to connect Facebook', variant: 'destructive' });
-    } finally { setIsConnectingFacebook(false); }
+      toast({
+        title: 'Connection failed',
+        description: error instanceof Error ? error.message : 'Failed to connect Facebook',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsConnectingFacebook(false);
+    }
   };
 
   const handlePlatformClick = (platformId: string, supported: boolean) => {
     if (platformId === 'instagram' && supported) handleConnectInstagram();
     else if (platformId === 'youtube') return;
     else if (platformId === 'facebook' && supported) handleConnectFacebook();
-    else if (!supported) toast({ title: 'Coming soon', description: `${platformId.charAt(0).toUpperCase() + platformId.slice(1)} integration is coming soon!` });
-    else togglePlatform(platformId);
+    else if (!supported) {
+      toast({
+        title: 'Coming soon',
+        description: `${platformId.charAt(0).toUpperCase() + platformId.slice(1)} integration is coming soon!`,
+      });
+    } else {
+      togglePlatform(platformId);
+    }
   };
 
   const handleSignOut = async () => {
